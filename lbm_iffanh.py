@@ -5,23 +5,24 @@ import math
 ####################################################### PREPARATION ###########################################################################
 #The size of grid
 
-sizeX_ = 5         #length in x-direction
-sizeY_ = 4         #length in y-direction
+sizeX_ = 3         #length in x-direction
+sizeY_ = 2         #length in y-direction
 
 solid = [[0 for j in xrange(sizeY_)] for i in xrange(sizeX_)]                       #Presence of solid or not, 1 means solid
 
 #Declaring variables
 
 rho = [[0 for j in xrange(sizeY_)] for i in xrange(sizeX_)]                         #Density of the lattice point, 
-ux = [[0 for j in xrange(sizeY_)] for i in xrange(sizeX_)]                               #Macroscopic velocity of the lattice point 
+ux = [[0 for j in xrange(sizeY_)] for i in xrange(sizeX_)]                          #Macroscopic velocity of the lattice point 
 uy = [[0 for j in xrange(sizeY_)] for i in xrange(sizeX_)]
-uxeq = [[0 for j in xrange(sizeY_)] for i in xrange(sizeX_)]                               #Macroscopic velocity of the lattice point 
+uxeq = [[0 for j in xrange(sizeY_)] for i in xrange(sizeX_)]                        #Macroscopic velocity of the lattice point 
 uyeq = [[0 for j in xrange(sizeY_)] for i in xrange(sizeX_)]
 f = [[[0 for k in xrange(9)] for j in xrange(sizeY_)] for i in xrange(sizeX_)]      #Density distribution of the a point f[x position][y position][index]
 ftemp = [[[0 for k in xrange(9)] for j in xrange(sizeY_)] for i in xrange(sizeX_)]
 feq = [[[0 for k in xrange(9)] for j in xrange(sizeY_)] for i in xrange(sizeX_)]
 
 #Constants used
+tau = 1.
 e_x = [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0]          
 e_y = [0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]
 w = [4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0]
@@ -40,13 +41,15 @@ f3 = 3./2.
 for j in range(sizeY_):
     for i in range(sizeX_):
         for a in range(9):
-            f[i][j][a] = 0.8 if i < (sizeX_/2) else 0.1 
-            
+            f[i][j][a] = 0.2 if i < (sizeX_/2) else 0.1 
+
+
+####################################################### SIMULATION ###########################################################################
 # and then computing macroscopic density and velocity for each lattice point        
 for j in range(sizeY_):
     for i in range(sizeX_):
-        for a in range(9):
-            if solid[i][j] == 0:
+        if solid[i][j] == 0:
+            for a in range(9):
                 rho[i][j] += f[i][j][a]
                 ux[i][j] += e_x[a]*f[i][j][a]
                 uy[i][j] += e_y[a]*f[i][j][a]
@@ -54,7 +57,7 @@ for j in range(sizeY_):
             uy[i][j] /= rho[i][j]
             
 
-#Streaming step
+#Streaming step (This is for torroidal topology, meaning that there is no outer boundary)
 for j in range(0,sizeY_):
     j_n = (j-1) if j > 0 else (sizeY_-1)
     j_p = (j+1) if j < (sizeY_ - 1) else 0 
@@ -91,23 +94,31 @@ for j in range(0,sizeY_):
 
             uxuy5 = uxeq[i][j] + uyeq[i][j]
             uxuy6 = -uxeq[i][j] + uyeq[i][j]
-            uxuy7 = -uxeq[i][j] + uyeq[i][j]
+            uxuy7 = -uxeq[i][j] - uyeq[i][j]
             uxuy8 = uxeq[i][j] - uyeq[i][j]
 
             usq = uxsq + uysq
 
             feq[i][j][0] = fct1*(1.                              - f3*usq)
             feq[i][j][1] = fct2*(1. + f1*uxeq[i][j] + f2*uxsq    - f3*usq)
-            feq[i][j][2] = fct2*(1. + f1*uxeq[i][j] + f2*uxsq    - f3*usq)
+            feq[i][j][2] = fct2*(1. + f1*uyeq[i][j] + f2*uysq    - f3*usq)
             feq[i][j][3] = fct2*(1. - f1*uxeq[i][j] + f2*uxsq    - f3*usq)
-            feq[i][j][4] = fct2*(1. - f1*uxeq[i][j] + f2*uxsq    - f3*usq)
+            feq[i][j][4] = fct2*(1. - f1*uyeq[i][j] + f2*uysq    - f3*usq)
             feq[i][j][5] = fct3*(1. + f1*uxuy5 + f2*uxuy5*uxuy5  - f3*usq)
             feq[i][j][6] = fct3*(1. + f1*uxuy6 + f2*uxuy6*uxuy6  - f3*usq)
             feq[i][j][7] = fct3*(1. + f1*uxuy7 + f2*uxuy7*uxuy7  - f3*usq)
             feq[i][j][8] = fct3*(1. + f1*uxuy8 + f2*uxuy8*uxuy8  - f3*usq)
 
+#Collision step
+for j in range(0,sizeY_):
+    for i in range(0,sizeX_):
+        if solid[i][j] == 0:
+            for a in range(9):
+                f[i][j][a] = ftemp[i][j][a] - (ftemp[i][j][a] - f[i][j][a]) / tau
 
+
+#print ux, uy, usq, uxuy5, uxuy6, uxuy7, uxuy8
+#print rho[2][0], ux[2][0], feq[2][0][0]
 print feq
-print ftemp
 
-#Feq value is much higher than f value, try to fix it!            
+        
