@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 ####################################################### PREPARATION ###########################################################################
 #The size of grid
-sizeX_ = 100         #length in x-direction
+sizeX_ = 10         #length in x-direction
 sizeY_ = 5         #length in y-direction
 
 #The number of iteration
@@ -31,7 +31,7 @@ ftemp = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(siz
 feq = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]
 
 #Constants used
-tau = 10.
+tau = 10.7
 e_x = [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0]          
 e_y = [0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]
 w = [4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0]
@@ -52,24 +52,11 @@ for j in range(0,sizeY_+2):
         for a in range(9):
             f[i][j][a] = 0.2 if i < (sizeX_/2) else 0.1 
 
+f[sizeX_//2][sizeY_//2][2] = 0.5
 
 ####################################################### SIMULATION ###########################################################################
 
 for t in range(T):
-    # ... and then computing macroscopic density and velocity for each lattice point        
-    for j in range(0,sizeY_+2):
-        for i in range(0,sizeX_+2):
-            if solid[i][j] == 0:
-                rho[i][j] = 0
-                ux[i][j] = 0
-                uy[i][j] = 0
-                for a in range(9):    
-                    rho[i][j] += f[i][j][a]
-                    ux[i][j] += e_x[a]*f[i][j][a]
-                    uy[i][j] += e_y[a]*f[i][j][a]
-                ux[i][j] /= rho[i][j]
-                uy[i][j] /= rho[i][j]
-            
 
     #Streaming step (This is for torroidal topology, meaning that there is no outer boundary)
     for j in range(0,sizeY_+ 2):
@@ -91,6 +78,19 @@ for t in range(T):
                 ftemp[i_n][j_n][7] = f[i][j][7]
                 ftemp[i_p][j_n][8] = f[i][j][8]
 
+    # ... and then computing macroscopic density and velocity for each lattice point        
+    for j in range(0,sizeY_+2):
+        for i in range(0,sizeX_+2):
+            if solid[i][j] == 0:
+                rho[i][j] = 0
+                ux[i][j] = 0
+                uy[i][j] = 0
+                for a in range(9):    
+                    rho[i][j] += ftemp[i][j][a]
+                    ux[i][j] += e_x[a]*ftemp[i][j][a]
+                    uy[i][j] += e_y[a]*ftemp[i][j][a]
+                ux[i][j] /= rho[i][j]
+                uy[i][j] /= rho[i][j]
 
     #Computing equilibrium distribution function
     for j in range(0,sizeY_+ 2):
