@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 ####################################################### PREPARATION ###########################################################################
 #The size of grid
-sizeX_ = 50         #length in x-direction
-sizeY_ = 50         #length in y-direction
+sizeX_ = 40         #length in x-direction
+sizeY_ = 16         #length in y-direction
 
 #The number of iteration
 T = 300             #Total time used in the simulation
@@ -57,27 +57,53 @@ for i in range(0,sizeX_+ 2):
         solid[i][sizeY_] = 1
         solid[1][j] = 1
         solid[sizeX_][j] = 1
-print solid
+
+# for i in range(3*sizeX_//7,4*sizeX_//7):
+#     for j in range(3*sizeY_//7,4*sizeY_//7):
+#         solid[i][j] = 1
+
+solid[7][10] = 1; solid[8][10] = 1; solid[9][10] = 1
+solid[6][9] = 1; solid[7][9] = 1; solid[8][9] = 1; solid[9][9] = 1; solid[10][9] = 1
+solid[6][8] = 1; solid[7][8] = 1; solid[8][8] = 1; solid[9][8] = 1; solid[10][8] = 1
+solid[6][7] = 1; solid[7][7] = 1; solid[8][7] = 1; solid[9][7] = 1; solid[10][7] = 1
+solid[7][6] = 1; solid[8][6] = 1; solid[9][6] = 1
 
 ####Initial Condition for density distribution, f
 #Initialize density distribution f, ...
+
+f_init = 0.2
 for j in range(1,sizeY_+ 1):
     for i in range(1, sizeX_+ 1):
-        if solid[i][j] == 0:
+        f[i][j][0] = f_init           
+        if solid[i][j] == 0 or solid[i][j] == 1: 
             for a in range(9):
-                f[i][j][a] = 0.05 if i < ((sizeX_+2)//2) else 0.05
-        elif solid[i][j] == 1 and i == 1:                                       #These four part is for the boundaries
-             f[i][j][1] = 0.05; f[i][j][5] = 0.05; f[i][j][8] = 0.05
-        elif solid[i][j] == 1 and i == sizeX_:
-             f[i][j][3] = 0.05; f[i][j][6] = 0.05; f[i][j][7] = 0.05
-        elif solid[i][j] == 1 and j == 1:
-             f[i][j][2] = 0.05; f[i][j][5] = 0.05; f[i][j][6] = 0.05
-        elif solid[i][j] == 1 and j == sizeY_:
-             f[i][j][4] = 0.05; f[i][j][7] = 0.05; f[i][j][8] = 0.05
+                f[i][j][a] = f_init if i < ((sizeX_+2)//2) else f_init
+        #Initialize bottom left distribution
+        elif solid[i][j] == 1 and i == 1 and j == 1: f[i][j][5] = f_init                                
+        elif solid[i][j] == 1 and i == 2 and j == 1: f[i][j][5] = f_init; f[i][j][2] = f_init
+        elif solid[i][j] == 1 and i == 1 and j == 2: f[i][j][5] = f_init; f[i][j][1] = f_init
+        #Initialize upper left distribution
+        elif solid[i][j] == 1 and i == 1 and j == sizeY_: f[i][j][8] = f_init                           
+        elif solid[i][j] == 1 and i == 2 and j == sizeY_: f[i][j][8] = f_init; f[i][j][4] = f_init
+        elif solid[i][j] == 1 and i == 1 and j == sizeY_-1: f[i][j][8] = f_init; f[i][j][1] = f_init
+        #Initialize bottom right distribution
+        elif solid[i][j] == 1 and i == sizeX_ and j == 1: f[i][j][6] = f_init                           
+        elif solid[i][j] == 1 and i == sizeX_-1 and j == 1: f[i][j][6] = f_init; f[i][j][2] = f_init
+        elif solid[i][j] == 1 and i == sizeX_ and j == 2: f[i][j][6] = f_init; f[i][j][3] = f_init
+        #Initialize upper right distribution
+        elif solid[i][j] == 1 and i == sizeX_ and j == sizeY_: f[i][j][7] = f_init                      
+        elif solid[i][j] == 1 and i == sizeX_-1 and j == sizeY_: f[i][j][7] = f_init; f[i][j][4] = f_init
+        elif solid[i][j] == 1 and i == sizeX_ and j == sizeY_-1: f[i][j][7] = f_init; f[i][j][3] = f_init
+        #These four parts are for the side boundaries
+        elif solid[i][j] == 1 and i == 1: f[i][j][1] = f_init; f[i][j][5] = f_init; f[i][j][8] = f_init 
+        elif solid[i][j] == 1 and i == sizeX_: f[i][j][3] = f_init; f[i][j][6] = f_init; f[i][j][7] = f_init
+        elif solid[i][j] == 1 and j == 1: f[i][j][2] = f_init; f[i][j][5] = f_init; f[i][j][6] = f_init
+        elif solid[i][j] == 1 and j == sizeY_: f[i][j][4] = f_init; f[i][j][7] = f_init; f[i][j][8] = f_init
+            
 
 
-#f[1][5][1] = 10.0
-#f[sizeX_//2][sizeY_//2][3] = 10.
+#f[1][5][1] = 1.0
+f[sizeX_//2][sizeY_//2][3] = 10.
 
 ####################################################### SIMULATION ###########################################################################
 
@@ -103,11 +129,10 @@ for t in range(T):
 
     #Streaming step for boundaries
 
-    #print ftemp[:][:][0]
     # ... and then computing macroscopic density and velocity for each lattice point        
     for j in range(1,sizeY_+1):
         for i in range(1,sizeX_+1):
-            if solid[i][j] == 0:
+            if solid[i][j] == 0 or solid[i][j] == 1:
                 rho[i][j] = 0
                 ux[i][j] = 0
                 uy[i][j] = 0
@@ -115,8 +140,8 @@ for t in range(T):
                     rho[i][j] += ftemp[i][j][a]
                     ux[i][j] += e_x[a]*ftemp[i][j][a]
                     uy[i][j] += e_y[a]*ftemp[i][j][a]
-                ux[i][j] /= rho[i][j]
-                uy[i][j] /= rho[i][j]
+                ux[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
+                uy[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
 
     #Computing equilibrium distribution function
     for j in range(1,sizeY_+ 1):
@@ -161,12 +186,13 @@ for t in range(T):
                 dummy = ftemp[i][j][5]; f[i][j][5] = ftemp[i][j][7]; f[i][j][7] = dummy
                 dummy = ftemp[i][j][6]; f[i][j][6] = ftemp[i][j][8]; f[i][j][8] = dummy
                  
-    print np.sum(rho), np.sum(ux), np.sum(uy)
+    #print np.sum(rho), np.sum(ux), np.sum(uy)
 
-    densityM = rho
+    densityM = zip(*rho)
+    print np.sum(densityM), np.sum(ux), np.sum(uy)
     ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=3)
     plt.draw()
-    plt.pause(0.0001)
+    plt.pause(0.1)
     plt.clf()
 ####################################################### OUTPUT ###########################################################################
 
