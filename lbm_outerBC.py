@@ -13,7 +13,7 @@ sizeX_ = 40         #length in x-direction
 sizeY_ = 16         #length in y-direction
 
 #The number of iteration
-T = 300             #Total time used in the simulation
+T = 200            #Total time used in the simulation
 dt = 1             #time interval
 
 solid = [[0 for j in xrange(sizeY_ + 2)] for i in xrange(sizeX_ + 2)]                       #Presence of solid or not, 1 means solid
@@ -21,6 +21,7 @@ solid = [[0 for j in xrange(sizeY_ + 2)] for i in xrange(sizeX_ + 2)]           
 #Declaring variables
 
 rho = [[0 for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]                         #Density of the lattice point, 
+rho_temp = [[0 for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]
 ux = [[0 for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]                          #Macroscopic velocity of the lattice point 
 uy = [[0 for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]
 uxeq = [[0 for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]                        #Macroscopic velocity of the lattice point 
@@ -30,7 +31,7 @@ ftemp = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(siz
 feq = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]
 
 #Constants used
-tau = 10.
+tau = 12.
 e_x = [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0]          
 e_y = [0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]
 w = [4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0]
@@ -53,10 +54,10 @@ def is_interior(i,j):
 
 for i in range(0,sizeX_+ 2):
     for j in range(0,sizeY_ + 2):
-        solid[i][1] = 1
-        solid[i][sizeY_] = 1
-        solid[1][j] = 1
-        solid[sizeX_][j] = 1
+        solid[i][0] = 1
+        solid[i][sizeY_+1] = 1
+        solid[0][j] = 1
+        solid[sizeX_+1][j] = 1
 
 # for i in range(3*sizeX_//7,4*sizeX_//7):
 #     for j in range(3*sizeY_//7,4*sizeY_//7):
@@ -73,42 +74,55 @@ solid[7][6] = 1; solid[8][6] = 1; solid[9][6] = 1
 
 f_init = 0.2
 for j in range(1,sizeY_+ 1):
-    for i in range(1, sizeX_+ 1):
-        f[i][j][0] = f_init           
-        if solid[i][j] == 0 or solid[i][j] == 1: 
+    for i in range(1, sizeX_+ 1):                 
+        if solid[i][j] == 0: #or solid[i][j] == 1:
+            #f[i][j][0] = f_init  
             for a in range(9):
-                f[i][j][a] = f_init if i < ((sizeX_+2)//2) else f_init
-        #Initialize bottom left distribution
-        elif solid[i][j] == 1 and i == 1 and j == 1: f[i][j][5] = f_init                                
-        elif solid[i][j] == 1 and i == 2 and j == 1: f[i][j][5] = f_init; f[i][j][2] = f_init
-        elif solid[i][j] == 1 and i == 1 and j == 2: f[i][j][5] = f_init; f[i][j][1] = f_init
-        #Initialize upper left distribution
-        elif solid[i][j] == 1 and i == 1 and j == sizeY_: f[i][j][8] = f_init                           
-        elif solid[i][j] == 1 and i == 2 and j == sizeY_: f[i][j][8] = f_init; f[i][j][4] = f_init
-        elif solid[i][j] == 1 and i == 1 and j == sizeY_-1: f[i][j][8] = f_init; f[i][j][1] = f_init
-        #Initialize bottom right distribution
-        elif solid[i][j] == 1 and i == sizeX_ and j == 1: f[i][j][6] = f_init                           
-        elif solid[i][j] == 1 and i == sizeX_-1 and j == 1: f[i][j][6] = f_init; f[i][j][2] = f_init
-        elif solid[i][j] == 1 and i == sizeX_ and j == 2: f[i][j][6] = f_init; f[i][j][3] = f_init
-        #Initialize upper right distribution
-        elif solid[i][j] == 1 and i == sizeX_ and j == sizeY_: f[i][j][7] = f_init                      
-        elif solid[i][j] == 1 and i == sizeX_-1 and j == sizeY_: f[i][j][7] = f_init; f[i][j][4] = f_init
-        elif solid[i][j] == 1 and i == sizeX_ and j == sizeY_-1: f[i][j][7] = f_init; f[i][j][3] = f_init
-        #These four parts are for the side boundaries
-        elif solid[i][j] == 1 and i == 1: f[i][j][1] = f_init; f[i][j][5] = f_init; f[i][j][8] = f_init 
-        elif solid[i][j] == 1 and i == sizeX_: f[i][j][3] = f_init; f[i][j][6] = f_init; f[i][j][7] = f_init
-        elif solid[i][j] == 1 and j == 1: f[i][j][2] = f_init; f[i][j][5] = f_init; f[i][j][6] = f_init
-        elif solid[i][j] == 1 and j == sizeY_: f[i][j][4] = f_init; f[i][j][7] = f_init; f[i][j][8] = f_init
+                f[i][j][a] = f_init #if i < ((sizeX_+2)//2) else f_init
+        # #Initialize bottom left distribution
+        # elif solid[i][j] == 1 and i == 1 and j == 1: f[i][j][5] = f_init                                
+        # elif solid[i][j] == 1 and i == 2 and j == 1: f[i][j][5] = f_init; f[i][j][2] = f_init
+        # elif solid[i][j] == 1 and i == 1 and j == 2: f[i][j][5] = f_init; f[i][j][1] = f_init
+        # #Initialize upper left distribution
+        # elif solid[i][j] == 1 and i == 1 and j == sizeY_: f[i][j][8] = f_init                           
+        # elif solid[i][j] == 1 and i == 2 and j == sizeY_: f[i][j][8] = f_init; f[i][j][4] = f_init
+        # elif solid[i][j] == 1 and i == 1 and j == sizeY_-1: f[i][j][8] = f_init; f[i][j][1] = f_init
+        # #Initialize bottom right distribution
+        # elif solid[i][j] == 1 and i == sizeX_ and j == 1: f[i][j][6] = f_init                           
+        # elif solid[i][j] == 1 and i == sizeX_-1 and j == 1: f[i][j][6] = f_init; f[i][j][2] = f_init
+        # elif solid[i][j] == 1 and i == sizeX_ and j == 2: f[i][j][6] = f_init; f[i][j][3] = f_init
+        # #Initialize upper right distribution
+        # elif solid[i][j] == 1 and i == sizeX_ and j == sizeY_: f[i][j][7] = f_init                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+        # elif solid[i][j] == 1 and i == sizeX_-1 and j == sizeY_: f[i][j][7] = f_init; f[i][j][4] = f_init
+        # elif solid[i][j] == 1 and i == sizeX_ and j == sizeY_-1: f[i][j][7] = f_init; f[i][j][3] = f_init
+        # #These four parts are for the side boundaries
+        # elif solid[i][j] == 1 and i == 1: f[i][j][1] = f_init; f[i][j][5] = f_init; f[i][j][8] = f_init 
+        # elif solid[i][j] == 1 and i == sizeX_: f[i][j][3] = f_init; f[i][j][6] = f_init; f[i][j][7] = f_init
+        # elif solid[i][j] == 1 and j == 1: f[i][j][2] = f_init; f[i][j][5] = f_init; f[i][j][6] = f_init
+        # elif solid[i][j] == 1 and j == sizeY_: f[i][j][4] = f_init; f[i][j][7] = f_init; f[i][j][8] = f_init
             
 
 
 #f[1][5][1] = 1.0
-f[sizeX_//2][sizeY_//2][3] = 10.
+f[20][7][3] = 10.
 
 ####################################################### SIMULATION ###########################################################################
 
 for t in range(T):
-        
+    # ... and then computing macroscopic density and velocity for each lattice point        
+    for j in range(1,sizeY_+1):
+        for i in range(1,sizeX_+1):
+            if solid[i][j] == 0:# or solid[i][j] == 1:
+                rho[i][j] = 0
+                #ux[i][j] = 0
+                #uy[i][j] = 0
+                for a in range(9):
+                    rho[i][j] += f[i][j][a]    
+                    #ux[i][j] += e_x[a]*f[i][j][a]
+                    #uy[i][j] += e_y[a]*f[i][j][a]
+                #ux[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
+                #uy[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
+
     #Streaming step
     for j in range(1,sizeY_+ 1):
         j_n = (j-1) 
@@ -116,28 +130,53 @@ for t in range(T):
         for i in range(1,sizeX_+ 1):
             i_n = (i-1) 
             i_p = (i+1)
-            if (not is_interior(i,j) or (solid[i][j] == 1 and ((i == 1) or (i == sizeX_) or (j == 1) or (j == sizeY_)))):
-                ftemp[i][j][0] = f[i][j][0]
-                ftemp[i_p][j][1] = f[i][j][1]
-                ftemp[i][j_p][2] = f[i][j][2]
-                ftemp[i_n][j][3] = f[i][j][3]
-                ftemp[i][j_n][4] = f[i][j][4]
-                ftemp[i_p][j_p][5] = f[i][j][5]
-                ftemp[i_n][j_p][6] = f[i][j][6]
-                ftemp[i_n][j_n][7] = f[i][j][7]
-                ftemp[i_p][j_n][8] = f[i][j][8]
+            if (solid[i][j] == 0):# or (solid[i][j] == 1 and ((i == 1) or (i == sizeX_) or (j == 1) or (j == sizeY_)))):
+                if (solid[i][j] == 0):      ftemp[i][j][0] = f[i][j][0]
 
-    #Streaming step for boundaries
+                if (solid[i_p][j] == 0):    ftemp[i_p][j][1] = f[i][j][1]#; f[i][j][1] = 0
+                else:                       ftemp[i][j][3] = f[i][j][1]#; f[i][j][1] = 0
 
+                if (solid[i][j_p] == 0):    ftemp[i][j_p][2] = f[i][j][2]#; f[i][j][2] = 0
+                else:                       ftemp[i][j][4] = f[i][j][2]#; f[i][j][2] = 0
+
+                if (solid[i_n][j] == 0):    ftemp[i_n][j][3] = f[i][j][3]#; f[i][j][3] = 0 
+                else:                       ftemp[i][j][1] = f[i][j][3]#; f[i][j][3] = 0 
+
+                if (solid[i][j_n] == 0):    ftemp[i][j_n][4] = f[i][j][4]#; f[i][j][4] = 0
+                else:                       ftemp[i][j][2] = f[i][j][4]#; f[i][j][4] = 0
+
+                if (solid[i_p][j_p] == 0):  ftemp[i_p][j_p][5] = f[i][j][5]#; f[i][j][5] = 0
+                else:                       ftemp[i][j][7] = f[i][j][5]#; f[i][j][5] = 0
+
+                if (solid[i_n][j_p] == 0):  ftemp[i_n][j_p][6] = f[i][j][6]#; f[i][j][6] = 0
+                else:                       ftemp[i][j][8] = f[i][j][6]#; f[i][j][6] = 0
+
+                if (solid[i_n][j_n] == 0):  ftemp[i_n][j_n][7] = f[i][j][7]#; f[i][j][7] = 0
+                else:                       ftemp[i][j][5] = f[i][j][7]#; f[i][j][7] = 0
+
+                if (solid[i_p][j_n] == 0):  ftemp[i_p][j_n][8] = f[i][j][8]#; f[i][j][8] = 0
+                else:                       ftemp[i][j][6] = f[i][j][8]#; f[i][j][8] = 0
+
+                # ftemp[i][j][0] = f[i][j][0]
+                # ftemp[i_p][j][1] = f[i][j][1]#; f[i][j][1] = 0
+                # ftemp[i][j_p][2] = f[i][j][2]#; f[i][j][2] = 0
+                # ftemp[i_n][j][3] = f[i][j][3]#; f[i][j][3] = 0 
+                # ftemp[i][j_n][4] = f[i][j][4]#; f[i][j][4] = 0
+                # ftemp[i_p][j_p][5] = f[i][j][5]#; f[i][j][5] = 0
+                # ftemp[i_n][j_p][6] = f[i][j][6]#; f[i][j][6] = 0
+                # ftemp[i_n][j_n][7] = f[i][j][7]#; f[i][j][7] = 0
+                # ftemp[i_p][j_n][8] = f[i][j][8]#; f[i][j][8] = 0
+
+    
     # ... and then computing macroscopic density and velocity for each lattice point        
     for j in range(1,sizeY_+1):
         for i in range(1,sizeX_+1):
-            if solid[i][j] == 0 or solid[i][j] == 1:
+            if solid[i][j] == 0:# or solid[i][j] == 1:
                 rho[i][j] = 0
                 ux[i][j] = 0
                 uy[i][j] = 0
-                for a in range(9):    
-                    rho[i][j] += ftemp[i][j][a]
+                for a in range(9):
+                    rho[i][j] += ftemp[i][j][a]    
                     ux[i][j] += e_x[a]*ftemp[i][j][a]
                     uy[i][j] += e_y[a]*ftemp[i][j][a]
                 ux[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
@@ -151,7 +190,7 @@ for t in range(T):
                 fct2 = w2*rho[i][j]
                 fct3 = w3*rho[i][j]
 
-                uxeq[i][j] = ux[i][j]                                       #exeq will incorporate external forces, if any
+                uxeq[i][j] = ux[i][j]                                       #uxeq will incorporate external forces, if any
                 uyeq[i][j] = uy[i][j] 
 
                 uxsq = uxeq[i][j]*uxeq[i][j]
@@ -180,15 +219,18 @@ for t in range(T):
             if solid[i][j] == 0:
                 for a in range(9):
                     f[i][j][a] = ftemp[i][j][a] - (ftemp[i][j][a] - feq[i][j][a]) / tau
-            else:
-                dummy = ftemp[i][j][1]; f[i][j][1] = ftemp[i][j][3]; f[i][j][3] = dummy
-                dummy = ftemp[i][j][2]; f[i][j][2] = ftemp[i][j][4]; f[i][j][4] = dummy
-                dummy = ftemp[i][j][5]; f[i][j][5] = ftemp[i][j][7]; f[i][j][7] = dummy
-                dummy = ftemp[i][j][6]; f[i][j][6] = ftemp[i][j][8]; f[i][j][8] = dummy
-                 
-    #print np.sum(rho), np.sum(ux), np.sum(uy)
+            # else:
+            #     #if (is_interior(i,j)):
+            #     # f[i+1][j][1] = ftemp[i][j][3]; f[i-1][j][3] = ftemp[i][j][1]
+            #     # f[i][j+1][2] = ftemp[i][j][4]; f[i][j-1][4] = ftemp[i][j][2]
+            #     # f[i+1][j+1][5] = ftemp[i][j][7]; f[i-1][j-1][7] = ftemp[i][j][5]
+            #     # f[i-1][j+1][6] = ftemp[i][j][8]; f[i+1][j-1][8] = ftemp[i][j][6]
+            #     dummy = f[i][j][1]; f[i][j][1] = f[i][j][3]; f[i][j][3] = dummy
+            #     dummy = f[i][j][2]; f[i][j][2] = f[i][j][4]; f[i][j][4] = dummy
+            #     dummy = f[i][j][5]; f[i][j][5] = f[i][j][7]; f[i][j][7] = dummy
+            #     dummy = f[i][j][6]; f[i][j][6] = f[i][j][8]; f[i][j][8] = dummy
 
-    densityM = zip(*rho)
+    densityM = zip(*rho)         #Transpose matrix rho
     print np.sum(densityM), np.sum(ux), np.sum(uy)
     ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=3)
     plt.draw()
