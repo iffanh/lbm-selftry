@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 ####################################################### PREPARATION ###########################################################################
 #The size of grid
-sizeX_ = 10         #length in x-direction
-sizeY_ = 10         #length in y-direction
+sizeX_ = 40         #length in x-direction
+sizeY_ = 20         #length in y-direction
 
 #The number of iteration
 T = 200            #Total time used in the simulation
@@ -68,7 +68,7 @@ for i in range(1,sizeX_+ 1):
     for j in range(1,sizeY_ + 1):
         solid[i][1] = 1
         solid[i][sizeY_] = 1
-        solid[1][j] = 1
+        solid[1][j] = 2
         solid[sizeX_][j] = 1
 
 solid[1][1] = 1
@@ -243,7 +243,9 @@ for t in range(T):
 
     densityM = zip(*rho)         #Transpose matrix rho
     #densityM = zip(*solid)         #Transpose matrix rho
-    print np.sum(densityM), np.sum(ux), np.sum(uy)
+    print "Mass = ", np.sum(densityM)
+    print "Velocity x dir = ", np.sum(ux)
+    print "Velocity y dir = ", np.sum(uy)
     ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=3)
     ax.invert_yaxis()
     plt.draw()

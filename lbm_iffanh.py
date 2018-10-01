@@ -130,10 +130,14 @@ for t in range(T):
                 for a in range(9):
                     f[i][j][a] = ftemp[i][j][a] - (ftemp[i][j][a] - feq[i][j][a]) / tau
 
-    print np.sum(rho), np.sum(ux), np.sum(uy)
+    
 
     densityM = rho
+    print "Mass = ", np.sum(densityM)
+    print "Velocity x dir = ", np.sum(ux)
+    print "Velocity y dir = ", np.sum(uy)
     ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=3)
+    ax.invert_yaxis()
     plt.draw()
     plt.pause(0.0001)
     plt.clf()
