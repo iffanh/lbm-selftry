@@ -31,7 +31,7 @@ ftemp = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(siz
 feq = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]
 
 #Constants used
-tau = 5.
+tau = 15.
 e_x = [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0]          
 e_y = [0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]
 w = [4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0]
@@ -41,7 +41,7 @@ w3 = 1./36.
 f1 = 3.
 f2 = 9./2.
 f3 = 3./2.
-f_tol = 0.00001 
+f_tol = 0. 
 
 ####################################################### FUNCTIONS ###########################################################################
 #To find out whether a solid is in contact in fluid or not
@@ -69,12 +69,15 @@ for i in range(1,sizeX_+ 1):
         solid[i][1] = 1
         solid[i][sizeY_] = 1
         solid[1][j] = 2
-        solid[sizeX_][j] = 1
+        solid[sizeX_][j] = 0
 
 solid[1][1] = 1
 solid[1][sizeY_] = 1
 solid[sizeX_][1] = 1
 solid[sizeX_][sizeY_] = 1
+
+solid[sizeX_][2] = 1
+solid[sizeX_][sizeY_-1] = 1
 
 #The cylinder
 # solid[7][10] = 1; solid[8][10] = 1; solid[9][10] = 1
@@ -103,7 +106,7 @@ for i in range(1,sizeX_+ 1):
             for a in [0,2,3,4,6,7]:
                 f[i][j][a] = f_init
 
-#f[10][10][3] = 1.
+#f[10][10][3] = 10.
 
 
 ####################################################### SIMULATION ###########################################################################
@@ -127,6 +130,7 @@ for t in range(T):
             if solid[i][j] == 0:
                 rho[i][j] = 0
                 for a in range(9):
+                    ftemp[i][j][a] = 0
                     if f[i][j][a] < f_tol: f[i][j][a] = 0
                     rho[i][j] += f[i][j][a]    
 
@@ -175,9 +179,9 @@ for t in range(T):
                 ux[i][j] = 0
                 uy[i][j] = 0
                 for a in range(9):
-                    rho[i][j] += ftemp[i][j][a]    
-                    ux[i][j] += e_x[a]*ftemp[i][j][a]
-                    uy[i][j] += e_y[a]*ftemp[i][j][a]
+                    rho[i][j] += f[i][j][a]    
+                    ux[i][j] += e_x[a]*f[i][j][a]
+                    uy[i][j] += e_y[a]*f[i][j][a]
                 ux[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
                 uy[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
 
@@ -223,23 +227,24 @@ for t in range(T):
                 for a in range(9):
                     #Only calculate the one with no bounce back? Not yet implemented
                     f[i][j][a] = ftemp[i][j][a] - (ftemp[i][j][a] - feq[i][j][a]) / tau
+
                 # f[i][j][0] = ftemp[i][j][0] - (ftemp[i][j][0] - feq[i][j][0]) / tau    
                 # if (solid[i_p][j] <> 1):    f[i][j][1] = ftemp[i][j][1] - (ftemp[i][j][1] - feq[i][j][1]) / tau
-                # else:                       f[i][j][1] = ftemp[i][j][1]
-                # if (solid[i][j_p] <> 1):    f[i][j][2] = ftemp[i][j][2] - (ftemp[i][j][2] - feq[i][j][2]) / tau
-                # else:                       f[i][j][2] = ftemp[i][j][2]
-                # if (solid[i_n][j] <> 1):    f[i][j][3] = ftemp[i][j][3] - (ftemp[i][j][3] - feq[i][j][3]) / tau
                 # else:                       f[i][j][3] = ftemp[i][j][3]
-                # if (solid[i][j_n] <> 1):    f[i][j][4] = ftemp[i][j][4] - (ftemp[i][j][4] - feq[i][j][4]) / tau
+                # if (solid[i][j_p] <> 1):    f[i][j][2] = ftemp[i][j][2] - (ftemp[i][j][2] - feq[i][j][2]) / tau
                 # else:                       f[i][j][4] = ftemp[i][j][4]
+                # if (solid[i_n][j] <> 1):    f[i][j][3] = ftemp[i][j][3] - (ftemp[i][j][3] - feq[i][j][3]) / tau
+                # else:                       f[i][j][1] = ftemp[i][j][1]
+                # if (solid[i][j_n] <> 1):    f[i][j][4] = ftemp[i][j][4] - (ftemp[i][j][4] - feq[i][j][4]) / tau
+                # else:                       f[i][j][2] = ftemp[i][j][2]
                 # if (solid[i_p][j_p] <> 1):  f[i][j][5] = ftemp[i][j][5] - (ftemp[i][j][5] - feq[i][j][5]) / tau
-                # else:                       f[i][j][5] = ftemp[i][j][5]
-                # if (solid[i_n][j_p] <> 1):  f[i][j][6] = ftemp[i][j][6] - (ftemp[i][j][6] - feq[i][j][6]) / tau
-                # else:                       f[i][j][6] = ftemp[i][j][6]
-                # if (solid[i_n][j_n] <> 1):  f[i][j][7] = ftemp[i][j][7] - (ftemp[i][j][7] - feq[i][j][7]) / tau
                 # else:                       f[i][j][7] = ftemp[i][j][7]
-                # if (solid[i_p][j_n] <> 1):  f[i][j][8] = ftemp[i][j][8] - (ftemp[i][j][8] - feq[i][j][8]) / tau 
+                # if (solid[i_n][j_p] <> 1):  f[i][j][6] = ftemp[i][j][6] - (ftemp[i][j][6] - feq[i][j][6]) / tau
                 # else:                       f[i][j][8] = ftemp[i][j][8]
+                # if (solid[i_n][j_n] <> 1):  f[i][j][7] = ftemp[i][j][7] - (ftemp[i][j][7] - feq[i][j][7]) / tau
+                # else:                       f[i][j][5] = ftemp[i][j][5]
+                # if (solid[i_p][j_n] <> 1):  f[i][j][8] = ftemp[i][j][8] - (ftemp[i][j][8] - feq[i][j][8]) / tau 
+                # else:                       f[i][j][6] = ftemp[i][j][6]
 
     densityM = zip(*rho)         #Transpose matrix rho
     #densityM = zip(*solid)         #Transpose matrix rho
