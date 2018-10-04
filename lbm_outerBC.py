@@ -57,7 +57,7 @@ for i in range(0,sizeX_+ 2):
     for j in range(0,sizeY_ + 2):
         solid[i][1] = 1
         solid[i][sizeY_] = 1
-        solid[1][j] = 0
+        solid[1][j] = 1
         solid[sizeX_][j] = 1
 
 # for i in range(3*sizeX_//7,4*sizeX_//7):
@@ -73,16 +73,16 @@ solid[7][6] = 1; solid[8][6] = 1; solid[9][6] = 1
 ####Initial Condition for density distribution, f
 #Initialize density distribution f, ...
 
-f_init = 0.2
+f_init = 0.8
 for j in range(1,sizeY_+ 1):
     for i in range(1, sizeX_+ 1):                 
         if solid[i][j] == 0: #or solid[i][j] == 1:
             #f[i][j][0] = f_init  
-            for a in range(9):
+            for a in range(1):
                 f[i][j][a] = f_init #if i < ((sizeX_+2)//2) else f_init
 
 #f[1][5][1] = 1.0
-f[20][7][3] = 10.
+f[20][8][0] = 10.
 
 ####################################################### SIMULATION ###########################################################################
 
@@ -133,7 +133,17 @@ for t in range(T):
 
                 if (solid[i_p][j_n] == 0):  ftemp[i_p][j_n][8] = f[i][j][8]#; f[i][j][8] = 0
                 else:                       ftemp[i][j][6] = f[i][j][8]#; f[i][j][8] = 0
-    
+                
+                # ftemp[i][j][0] = f[i][j][0]
+                # ftemp[i_p][j][1] = f[i][j][1]
+                # ftemp[i][j_p][2] = f[i][j][2]
+                # ftemp[i_n][j][3] = f[i][j][3]
+                # ftemp[i][j_n][4] = f[i][j][4]
+                # ftemp[i_p][j_p][5] = f[i][j][5]
+                # ftemp[i_n][j_p][6] = f[i][j][6]
+                # ftemp[i_n][j_n][7] = f[i][j][7]
+                # ftemp[i_p][j_n][8] = f[i][j][8]
+
     # ... and then computing macroscopic density and velocity for each lattice point, after shifting        
     for j in range(1,sizeY_+1):
         for i in range(1,sizeX_+1):
@@ -145,8 +155,8 @@ for t in range(T):
                     rho[i][j] += ftemp[i][j][a]    
                     ux[i][j] += e_x[a]*ftemp[i][j][a]
                     uy[i][j] += e_y[a]*ftemp[i][j][a]
-                ux[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
-                uy[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
+                ux[i][j] = ux[i][j]/rho[i][j] #if rho[i][j] <> 0 else 0
+                uy[i][j] = uy[i][j]/rho[i][j] #if rho[i][j] <> 0 else 0
 
     #Computing equilibrium distribution function
     for j in range(1,sizeY_+ 1):
@@ -180,8 +190,8 @@ for t in range(T):
                 feq[i][j][8] = fct3*(1. + f1*uxuy8 + f2*uxuy8*uxuy8  - f3*usq)
 
     #Collision step
-    for j in range(1,sizeY_+1):
-        for i in range(1,sizeX_+1):
+    for j in range(0,sizeY_+2):
+        for i in range(0,sizeX_+2):
             if solid[i][j] == 0:
                 for a in range(9):
                     f[i][j][a] = ftemp[i][j][a] - (ftemp[i][j][a] - feq[i][j][a]) / tau

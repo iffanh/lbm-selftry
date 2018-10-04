@@ -137,7 +137,7 @@ for t in range(T):
                     ux[i][j] += e_x[a]*ftemp[i][j][a]
                     uy[i][j] += e_y[a]*ftemp[i][j][a]
                 ux[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
-                uy[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
+                uy[i][j] = uy[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
 
     #Computing equilibrium distribution function
     for j in range(1,sizeY_+ 1):

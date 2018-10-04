@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 ####################################################### PREPARATION ###########################################################################
 #The size of grid
 sizeX_ = 40         #length in x-direction
-sizeY_ = 20         #length in y-direction
+sizeY_ = 16         #length in y-direction
 
 #The number of iteration
 T = 200            #Total time used in the simulation
@@ -31,7 +31,7 @@ ftemp = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(siz
 feq = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]
 
 #Constants used
-tau = 15.
+tau = 6.
 e_x = [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0]          
 e_y = [0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]
 w = [4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0]
@@ -76,15 +76,15 @@ solid[1][sizeY_] = 1
 solid[sizeX_][1] = 1
 solid[sizeX_][sizeY_] = 1
 
-solid[sizeX_][2] = 1
-solid[sizeX_][sizeY_-1] = 1
+#solid[sizeX_][2] = 1
+#solid[sizeX_][sizeY_-1] = 1
 
 #The cylinder
-# solid[7][10] = 1; solid[8][10] = 1; solid[9][10] = 1
-# solid[6][9] = 1; solid[7][9] = 1; solid[8][9] = 1; solid[9][9] = 1; solid[10][9] = 1
-# solid[6][8] = 1; solid[7][8] = 1; solid[8][8] = 1; solid[9][8] = 1; solid[10][8] = 1
-# solid[6][7] = 1; solid[7][7] = 1; solid[8][7] = 1; solid[9][7] = 1; solid[10][7] = 1
-# solid[7][6] = 1; solid[8][6] = 1; solid[9][6] = 1
+solid[7][10] = 1; solid[8][10] = 1; solid[9][10] = 1
+solid[6][9] = 1; solid[7][9] = 1; solid[8][9] = 1; solid[9][9] = 1; solid[10][9] = 1
+solid[6][8] = 1; solid[7][8] = 1; solid[8][8] = 1; solid[9][8] = 1; solid[10][8] = 1
+solid[6][7] = 1; solid[7][7] = 1; solid[8][7] = 1; solid[9][7] = 1; solid[10][7] = 1
+solid[7][6] = 1; solid[8][6] = 1; solid[9][6] = 1
 
 ####Initial Condition for density distribution, f
 #Initialize density distribution f, ...
@@ -106,7 +106,7 @@ for i in range(1,sizeX_+ 1):
             for a in [0,2,3,4,6,7]:
                 f[i][j][a] = f_init
 
-#f[10][10][3] = 10.
+#f[10][10][5] = 10.
 
 
 ####################################################### SIMULATION ###########################################################################
@@ -183,7 +183,7 @@ for t in range(T):
                     ux[i][j] += e_x[a]*f[i][j][a]
                     uy[i][j] += e_y[a]*f[i][j][a]
                 ux[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
-                uy[i][j] = ux[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
+                uy[i][j] = uy[i][j]/rho[i][j] if rho[i][j] <> 0 else 0
 
     #Computing equilibrium distribution function
     for j in range(1,sizeY_+ 1):
