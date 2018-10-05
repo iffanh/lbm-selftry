@@ -1,9 +1,13 @@
 ####################################################### PREPARATION ###########################################################################
 import numpy as np
+import scipy.io as sp 
 
-#importing grid
-m = np.genfromtxt('matrix_structure.dat', delimiter=" ")
+
+# #importing grid
+m = np.genfromtxt('porous_medium01.dat', delimiter=" ")
 m = zip(*m)
+
+print m
 
 #The size of grid
 # sizeX_ = 40         #length in x-direction
@@ -13,7 +17,7 @@ sizeX_ = len(m) - 2         #length in x-direction
 sizeY_ = len(m[0]) - 2        #length in y-direction
 
 #The number of iteration
-T = 200            #Total time used in the simulation
+T = 500            #Total time used in the simulation
 dt = 1             #time interval
 
 #m = [[0 for j in xrange(sizeY_ + 2)] for i in xrange(sizeX_ + 2)]                       #Presence of m or not, 1 means m
@@ -95,5 +99,3 @@ for i in range(1,sizeX_+ 1):
             #West side
             for a in [0,2,3,4,6,7]:
                 f[i][j][a] = f_init
-
-#f[10][10][5] = 10.

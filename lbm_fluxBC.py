@@ -131,7 +131,7 @@ for t in range(ini.T):
     print "Mass = ", np.sum(densityM)
     print "Velocity x dir = ", np.sum(ini.ux)
     print "Velocity y dir = ", np.sum(ini.uy)
-    ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=5)
+    ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=3)
     ax.invert_yaxis()
     plt.draw()
     plt.pause(0.1)
