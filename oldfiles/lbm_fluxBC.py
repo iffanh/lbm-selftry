@@ -128,6 +128,7 @@ for t in range(ini.T):
                     ini.f[i][j][a] = ini.ftemp[i][j][a] - (ini.ftemp[i][j][a] - ini.feq[i][j][a]) / ini.tau
 
     densityM = zip(*ini.rho)         #Transpose matrix rho
+    print "Time = ", t
     print "Mass = ", np.sum(densityM)
     print "Velocity x dir = ", np.sum(ini.ux)
     print "Velocity y dir = ", np.sum(ini.uy)

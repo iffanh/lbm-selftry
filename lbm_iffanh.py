@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 ####################################################### PREPARATION ###########################################################################
 #The size of grid
-sizeX_ = 10         #length in x-direction
-sizeY_ = 5         #length in y-direction
+sizeX_ = 50         #length in x-direction
+sizeY_ = 30         #length in y-direction
 
 #The number of iteration
 T = 1000             #Total time used in the simulation
@@ -50,9 +50,9 @@ f3 = 3./2.
 for j in range(0,sizeY_+2):
     for i in range(0,sizeX_+2):
         for a in range(9):
-            f[i][j][a] = 0.2 if i < (sizeX_/2) else 0.1 
+            f[i][j][a] = 0.2 #if i < (sizeX_/2) else 0.1 
 
-f[sizeX_//2][sizeY_//2][2] = 0.5
+f[sizeX_//2][sizeY_//2][2] = 10.
 
 ####################################################### SIMULATION ###########################################################################
 

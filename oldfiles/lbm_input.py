@@ -4,20 +4,16 @@ import scipy.io as sp
 
 
 # #importing grid
-m = np.genfromtxt('porous_medium01.dat', delimiter=" ")
+m = np.genfromtxt('porous_medium02.dat', delimiter="\t")
 m = zip(*m)
 
 print m
-
-#The size of grid
-# sizeX_ = 40         #length in x-direction
-# sizeY_ = 16         #length in y-direction
 
 sizeX_ = len(m) - 2         #length in x-direction
 sizeY_ = len(m[0]) - 2        #length in y-direction
 
 #The number of iteration
-T = 500            #Total time used in the simulation
+T = 1000            #Total time used in the simulation
 dt = 1             #time interval
 
 #m = [[0 for j in xrange(sizeY_ + 2)] for i in xrange(sizeX_ + 2)]                       #Presence of m or not, 1 means m
@@ -35,7 +31,7 @@ ftemp = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(siz
 feq = [[[0 for k in xrange(9)] for j in xrange(sizeY_+ 2)] for i in xrange(sizeX_+ 2)]
 
 #Constants used
-tau = 1.5
+tau = 1.2
 e_x = [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0]          
 e_y = [0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]
 w = [4.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0]
