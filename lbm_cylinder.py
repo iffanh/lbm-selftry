@@ -116,13 +116,20 @@ for t in range(ini.T):
     for a in range(9):
        ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a] = np.where(ini.m[1:ini.sizeX_+1,1:ini.sizeY_+1] == 0, ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - (ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - ini.feq[1:ini.sizeX_+1,1:ini.sizeY_+1,a]) / ini.tau, ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a])
 
-    densityM = ini.rho.transpose()        #Transpose matrix rho
+    densityM = ini.ux.transpose()        #Transpose matrix rho
     print "Time = ", t
     print "Mass = ", sum(densityM)
     print "Velocity x dir = ", sum(ini.ux)
     print "Velocity y dir = ", sum(ini.uy)
-    ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=3)
-    ax.invert_yaxis()
+    # ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=3)
+    # ax.invert_yaxis()
+    # plt.draw()
+    # plt.pause(0.1)
+    # plt.clf()
+    #Plot cross-section velocity
+    plt.plot(ini.ux[-2,:],label='Outlet')
+    plt.plot(ini.ux[7,:],label='Middle')
+    plt.plot(ini.ux[2,:],label='Inlet')
     plt.draw()
     plt.pause(0.1)
     plt.clf()

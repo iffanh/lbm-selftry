@@ -4,7 +4,7 @@ import scipy.io as sp
 
 
 # #importing grid
-m = genfromtxt('porestructure/porous_medium02.dat', delimiter="\t")
+m = genfromtxt('porestructure/channel_9.dat', delimiter="\t")
 m = m.transpose()
 
 print m
