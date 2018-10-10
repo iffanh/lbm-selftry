@@ -22,6 +22,16 @@ for t in range(ini.T):
                 ini.f[i,j,1] = ini.f[i,j,3] + (2./3.)*ru
                 ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,2] - ini.f[i,j,4])
                 ini.f[i,j,8] = ini.f[i,j,6] + (1./6.)*ru - (1./2.)*(ini.f[i,j,4] - ini.f[i,j,2])
+    
+    #Zou and He velocity BCs on south side
+    for j in range(1,ini.sizeY_+1):
+        for i in range(1,ini.sizeX_+1):
+            if ini.m[i,j] == 3:
+                ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,1] + ini.f[i,j,3] + 2.*(ini.f[i,j,4] + ini.f[i,j,7] + ini.f[i,j,8])) / (1 - ini.ux0)
+                ru = ini.rho[i,j]*ini.uy0
+                ini.f[i,j,2] = ini.f[i,j,4] + (2./3.)*ru
+                ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,1] - ini.f[i,j,3])
+                ini.f[i,j,6] = ini.f[i,j,8] + (1./6.)*ru - (1./2.)*(ini.f[i,j,3] - ini.f[i,j,1])
                 
 
     # ... computing density for imaging
@@ -73,12 +83,13 @@ for t in range(ini.T):
     ini.uy[:,:] = 0
 
     for a in range(9):
-        ini.rho[:,:] += ini.f[:,:,a]    
-        ini.ux[:,:] += ini.e_[0,a]*ini.f[:,:,a]
-        ini.uy[:,:] += ini.e_[1,a]*ini.f[:,:,a]
+        ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]    
+        ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.e_[0,a]*ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]
+        ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.e_[1,a]*ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]
 
-    ini.ux[:,:] = np.where(ini.rho[:,:] != 0, ini.ux[:,:]/ini.rho[:,:], 0)
-    ini.uy[:,:] = np.where(ini.rho[:,:] != 0, ini.uy[:,:]/ini.rho[:,:], 0)
+    ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1] = np.where(ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] > ini.f_tol, ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1], ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.f_tol)
+    ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1] = np.where(ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] > ini.f_tol, ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1], ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.f_tol)
+    ini.u[1:ini.sizeX_+1,1:ini.sizeY_+1] = sqrt((ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]**2 + ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]**2)/2)
 
     #Computing equilibrium distribution function
     for j in range(1,ini.sizeY_+ 1):
@@ -113,26 +124,32 @@ for t in range(ini.T):
 
     #Collision step
 
+    ini.tau[:,:,:] = maximum(ini.tau0, (1 - (ini.feq[:,:,:]/ini.f[:,:,:])))
     for a in range(9):
-       ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a] = np.where(ini.m[1:ini.sizeX_+1,1:ini.sizeY_+1] == 0, ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - (ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - ini.feq[1:ini.sizeX_+1,1:ini.sizeY_+1,a]) / ini.tau, ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a])
+       ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a] = np.where(ini.m[1:ini.sizeX_+1,1:ini.sizeY_+1] == 0, ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - (ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - ini.feq[1:ini.sizeX_+1,1:ini.sizeY_+1,a]) / ini.tau[1:ini.sizeX_+1,1:ini.sizeY_+1,a], ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a])
 
-    densityM = ini.ux.transpose()        #Transpose matrix rho
+    varm = ini.ux.transpose()        #Transpose matrix rho
     print "Time = ", t
-    print "Mass = ", sum(densityM)
+    print "Mass = ", sum(ini.rho)
     print "Velocity x dir = ", sum(ini.ux)
     print "Velocity y dir = ", sum(ini.uy)
-    # ax = sns.heatmap(densityM, annot=False, vmin=0, vmax=3)
-    # ax.invert_yaxis()
-    # plt.draw()
-    # plt.pause(0.1)
-    # plt.clf()
-    #Plot cross-section velocity
-    plt.plot(ini.ux[-2,:],label='Outlet')
-    plt.plot(ini.ux[7,:],label='Middle')
-    plt.plot(ini.ux[2,:],label='Inlet')
-    plt.draw()
-    plt.pause(0.1)
+    plt.figure(1)
+    #cmap = sns.cm.rocket_r
+    ax = sns.heatmap(varm, annot=False, vmin=0, vmax=0.6, cmap='RdYlBu_r')
+    ax.invert_yaxis()
+    plt.pause(0.001)
     plt.clf()
+
+    #Plot cross-section velocity
+    # plt.figure(2)
+    # plt.plot(ini.ux[-2,:],label='Outlet')
+    # plt.plot(ini.ux[(ini.sizeX_+2)//2,:],label='Middle')
+    # plt.plot(ini.ux[2,:],label='Inlet')
+    # plt.legend(loc='upper right')
+    # plt.show
+    # plt.pause(0.001)
+    # plt.clf()
+
 ####################################################### OUTPUT ###########################################################################
 
         

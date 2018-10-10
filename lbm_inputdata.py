@@ -4,7 +4,7 @@ import scipy.io as sp
 
 
 # #importing grid
-m = genfromtxt('porestructure/channel_9.dat', delimiter="\t")
+m = genfromtxt('porestructure/cylinder_11.dat', delimiter="\t")
 m = m.transpose()
 
 print m
@@ -23,18 +23,20 @@ dt = 1             #time interval
 rho = zeros((sizeX_+2,sizeY_+2))                         #Density of the lattice point, 
 ux = zeros((sizeX_+2,sizeY_+2))                          #Macroscopic velocity of the lattice point 
 uy = zeros((sizeX_+2,sizeY_+2))
+u = zeros((sizeX_+2,sizeY_+2))
 uxeq = zeros((sizeX_+2,sizeY_+2))                        #Macroscopic velocity of the lattice point 
 uyeq = zeros((sizeX_+2,sizeY_+2))
 f = zeros((sizeX_+2,sizeY_+2,9))      #Density distribution of the a point f[x position][y position][index]
 ftemp = zeros((sizeX_+2,sizeY_+2,9))
 feq = zeros((sizeX_+2,sizeY_+2,9))
+tau = zeros((sizeX_+2,sizeY_+2,9))
 
 #Constants used
-tau = 1.2
+tau0 = 1.2
 e_ = array([[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],[0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]])         
 w = array([4.0/9.0, 1.0/9.0, 1.0/36.0])
 c_eq = array([3., 9./2., 3./2.])
-f_tol = 0. 
+f_tol = 0.01 
 
 ####################################################### FUNCTIONS ###########################################################################
 #To find out whether a m is in contact in fluid or not
@@ -56,7 +58,9 @@ for j in range(1,sizeY_+ 1):
 
 ###Von Neumann Boundary condition
 #Initializing flux boundary density distribution
-ux0 = 0.6
+ux0 = 0.25
+uy0 = 0.2
+
 for i in range(1,sizeX_+ 1):
     for j in range(1,sizeY_ + 1):
         if m[i,j] == 2:
