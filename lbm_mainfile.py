@@ -27,7 +27,7 @@ for t in range(ini.T):
     for j in range(1,ini.sizeY_+1):
         for i in range(1,ini.sizeX_+1):
             if ini.m[i,j] == 3:
-                ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,1] + ini.f[i,j,3] + 2.*(ini.f[i,j,4] + ini.f[i,j,7] + ini.f[i,j,8])) / (1 - ini.ux0)
+                ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,1] + ini.f[i,j,3] + 2.*(ini.f[i,j,4] + ini.f[i,j,7] + ini.f[i,j,8])) / (1 - ini.uy0)
                 ru = ini.rho[i,j]*ini.uy0
                 ini.f[i,j,2] = ini.f[i,j,4] + (2./3.)*ru
                 ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,1] - ini.f[i,j,3])
@@ -35,7 +35,7 @@ for t in range(ini.T):
                 
 
     # ... computing density for imaging
-    ini.rho[:,:] = 0
+    ini.rho[:,:] = 0.
     for a in range(9):
         ini.f[:,:,a] = np.where(ini.f[:,:,a] > ini.f_tol, ini.f[:,:,a], ini.f_tol)
         ini.rho[:,:] += np.where(ini.m[i,j] == 0, ini.f[:,:,a], 0)
@@ -78,17 +78,15 @@ for t in range(ini.T):
                 else:                           ini.ftemp[i,j,6] = ini.f[i,j,8]
     
     # ... and then computing macroscopic density and velocity for each lattice point, after shifting
-    ini.rho[:,:] = 0
-    ini.ux[:,:] = 0
-    ini.uy[:,:] = 0
-
+    ini.rho[:,:] = 0.
+    ini.ux[:,:] = 0.
+    ini.uy[:,:] = 0.
     for a in range(9):
         ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]    
         ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.e_[0,a]*ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]
         ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.e_[1,a]*ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]
-
-    ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1] = np.where(ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] > ini.f_tol, ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1], ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.f_tol)
-    ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1] = np.where(ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] > ini.f_tol, ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1], ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.f_tol)
+    ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1] = np.where(ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] > ini.f_tol, ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1], ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]/(9*ini.f_tol))
+    ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1] = np.where(ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] > ini.f_tol, ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1], ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]/(9*ini.f_tol))
     ini.u[1:ini.sizeX_+1,1:ini.sizeY_+1] = sqrt((ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]**2 + ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]**2)/2)
 
     #Computing equilibrium distribution function
@@ -128,17 +126,23 @@ for t in range(ini.T):
     for a in range(9):
        ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a] = np.where(ini.m[1:ini.sizeX_+1,1:ini.sizeY_+1] == 0, ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - (ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - ini.feq[1:ini.sizeX_+1,1:ini.sizeY_+1,a]) / ini.tau[1:ini.sizeX_+1,1:ini.sizeY_+1,a], ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a])
 
-    varm = ini.ux.transpose()        #Transpose matrix rho
+
+    #Plotting 
     print "Time = ", t
     print "Mass = ", sum(ini.rho)
     print "Velocity x dir = ", sum(ini.ux)
     print "Velocity y dir = ", sum(ini.uy)
-    plt.figure(1)
-    #cmap = sns.cm.rocket_r
-    ax = sns.heatmap(varm, annot=False, vmin=0, vmax=0.6, cmap='RdYlBu_r')
-    ax.invert_yaxis()
-    plt.pause(0.001)
-    plt.clf()
+    print ini.ux[ini.sizeX_//2,ini.sizeY_//2] 
+
+    if mod(t,5) == 0:
+        varm = ini.ux.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
+        plt.figure(1)
+        #cmap = sns.cm.rocket_r
+        ax = sns.heatmap(varm, annot=False, vmin=0., vmax=0.6, cmap='RdYlBu_r')           #For ux
+        #ax = sns.heatmap(varm, annot=False, vmin=5.*ini.f_init, vmax=18*ini.f_init, cmap='RdYlBu_r')           #For rho
+        ax.invert_yaxis()
+        plt.pause(0.001)
+        plt.clf()
 
     #Plot cross-section velocity
     # plt.figure(2)

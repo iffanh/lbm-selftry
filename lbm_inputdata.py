@@ -4,8 +4,16 @@ import scipy.io as sp
 
 
 # #importing grid
-m = genfromtxt('porestructure/cylinder_11.dat', delimiter="\t")
+m = genfromtxt('porestructure/cylinder_15.dat', delimiter="\t")
 m = m.transpose()
+
+#What we have now:
+# 1. channel_5.dat
+# 2. channel_9.dat
+# 3. channel_33.dat
+# 4. cylinder_5.dat
+# 5. cylinder_11.dat
+# 6. cylinder_15.dat
 
 print m
 
@@ -32,7 +40,11 @@ feq = zeros((sizeX_+2,sizeY_+2,9))
 tau = zeros((sizeX_+2,sizeY_+2,9))
 
 #Constants used
-tau0 = 1.2
+Re_x = 3.
+ux0 = 0.1
+uy0 = 0.2   
+visc = ux0*11./Re_x             #kinematic viscosity
+tau0 = 3*visc + 0.5                
 e_ = array([[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],[0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]])         
 w = array([4.0/9.0, 1.0/9.0, 1.0/36.0])
 c_eq = array([3., 9./2., 3./2.])
@@ -58,9 +70,6 @@ for j in range(1,sizeY_+ 1):
 
 ###Von Neumann Boundary condition
 #Initializing flux boundary density distribution
-ux0 = 0.25
-uy0 = 0.2
-
 for i in range(1,sizeX_+ 1):
     for j in range(1,sizeY_ + 1):
         if m[i,j] == 2:
@@ -69,5 +78,8 @@ for i in range(1,sizeX_+ 1):
                 f[i,j,a] = f_init
 
 #print f[:,:,[0,2,3,4,6,7]]
+###Reynold Number
 
+print "kinematic viscosity: ", visc
+print "relaxation parameter, tau: ", tau0
 
