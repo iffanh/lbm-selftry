@@ -7,6 +7,7 @@ import numpy as np
 from numpy import *
 import seaborn as sns; sns.set()
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 import lbm_inputdata_cylinder as ini             #import from theinput file
 import os
 
@@ -16,24 +17,24 @@ for t in range(ini.T):
 
     #ini.ux0 = ini.ux0 + sin(t*pi/7)/50
     #Zou and He velocity BCs on west side
-    for j in range(1,ini.sizeY_+1):
+    for j in range(ini.sizeY_+2):
         for i in range(1,ini.sizeX_+1):
             if ini.m[i,j] == 2:
                 ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,2] + ini.f[i,j,4] + 2.*(ini.f[i,j,3] + ini.f[i,j,7] + ini.f[i,j,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2*j*pi/ini.sizeY_)))
-                ru = ini.rho[i,j]*ini.ux0 #*(1 + 1e-4*sin(2*j*pi/ini.sizeY_))
+                ru = ini.rho[i,j]*ini.ux0*(1 + 1e-3*sin(2*j*pi/ini.sizeY_))
                 ini.f[i,j,1] = ini.f[i,j,3] + (2./3.)*ru
                 ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,2] - ini.f[i,j,4])# + sin(t*pi/7)/2
                 ini.f[i,j,8] = ini.f[i,j,6] + (1./6.)*ru - (1./2.)*(ini.f[i,j,4] - ini.f[i,j,2])# - sin(t*pi/7)/2
     
-    #Zou and He velocity BCs on south side
-    for j in range(1,ini.sizeY_+1):
-        for i in range(1,ini.sizeX_+1):
-            if ini.m[i,j] == 3:
-                ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,1] + ini.f[i,j,3] + 2.*(ini.f[i,j,4] + ini.f[i,j,7] + ini.f[i,j,8])) / (1 - ini.uy0)
-                ru = ini.rho[i,j]*ini.uy0
-                ini.f[i,j,2] = ini.f[i,j,4] + (2./3.)*ru
-                ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,1] - ini.f[i,j,3])
-                ini.f[i,j,6] = ini.f[i,j,8] + (1./6.)*ru - (1./2.)*(ini.f[i,j,3] - ini.f[i,j,1])
+    # Zou and He velocity BCs on south side
+    # for j in range(1,ini.sizeY_+1):
+    #     for i in range(1,ini.sizeX_+1):
+    #         if ini.m[i,j] == 3:
+    #             ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,1] + ini.f[i,j,3] + 2.*(ini.f[i,j,4] + ini.f[i,j,7] + ini.f[i,j,8])) / (1 - ini.uy0)
+    #             ru = ini.rho[i,j]*ini.uy0
+    #             ini.f[i,j,2] = ini.f[i,j,4] + (2./3.)*ru
+    #             ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,1] - ini.f[i,j,3])
+    #             ini.f[i,j,6] = ini.f[i,j,8] + (1./6.)*ru - (1./2.)*(ini.f[i,j,3] - ini.f[i,j,1])
                 
 
     # ... computing density for imaging
@@ -43,18 +44,16 @@ for t in range(ini.T):
         ini.rho[:,:] += np.where(ini.m[i,j] == 0, ini.f[:,:,a], 0)
 
     #Streaming step
-    for j in range(1,ini.sizeY_+ 1):
-        j_n = (j-1) 
-        j_p = (j+1)
+    ini.ftemp[:,:,0] = ini.f[:,:,0]
+    for j in range(ini.sizeY_+2):
+        j_n = (j-1) if j > 0 else (ini.sizeY_+1)
+        j_p = (j+1) if j < (ini.sizeY_ + 1) else 0 
         for i in range(1,ini.sizeX_+ 1):
             i_n = (i-1) 
             i_p = (i+1)
             if (ini.m[i,j] <> 1):
                 #For streaming part, if adjacent grid is a m, then the density distribution will propagate, 
-                #Else, the density is bounced back to the same grid, but with different direction
-                
-                ini.ftemp[i,j,0] = ini.f[i,j,0]
-                
+                #Else, the density is bounced back to the same grid, but with different direction        
                 if (ini.m[i_p,j] <> 1):    ini.ftemp[i_p,j,1] = ini.f[i,j,1]
                 else:                      ini.ftemp[i,j,3] = ini.f[i,j,1]
 
@@ -84,35 +83,37 @@ for t in range(ini.T):
     ini.ux[:,:] = 0.
     ini.uy[:,:] = 0.
     for a in range(9):
-        ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]    
-        ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.e_[0,a]*ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]
-        ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1] += ini.e_[1,a]*ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a]
-    ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1] = np.where(ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] > ini.f_tol, ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1], ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]/(9*ini.f_tol))
-    ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1] = np.where(ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1] > ini.f_tol, ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]/ini.rho[1:ini.sizeX_+1,1:ini.sizeY_+1], ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]/(9*ini.f_tol))
-    ini.u[1:ini.sizeX_+1,1:ini.sizeY_+1] = sqrt((ini.ux[1:ini.sizeX_+1,1:ini.sizeY_+1]**2 + ini.uy[1:ini.sizeX_+1,1:ini.sizeY_+1]**2)/2)
+        ini.rho[1:ini.sizeX_+1,:] += ini.ftemp[1:ini.sizeX_+1,:,a]    
+        ini.ux[1:ini.sizeX_+1,:] += ini.e_[0,a]*ini.ftemp[1:ini.sizeX_+1,:,a]
+        ini.uy[1:ini.sizeX_+1,:] += ini.e_[1,a]*ini.ftemp[1:ini.sizeX_+1,:,a]
+    ini.ux[1:ini.sizeX_+1,:] = np.where(ini.rho[1:ini.sizeX_+1,:] > ini.f_tol, ini.ux[1:ini.sizeX_+1,:]/ini.rho[1:ini.sizeX_+1,:], ini.ux[1:ini.sizeX_+1,:]/(9*ini.f_tol))
+    ini.uy[1:ini.sizeX_+1,:] = np.where(ini.rho[1:ini.sizeX_+1,:] > ini.f_tol, ini.uy[1:ini.sizeX_+1,:]/ini.rho[1:ini.sizeX_+1,:], ini.uy[1:ini.sizeX_+1,:]/(9*ini.f_tol))
+    ini.u[1:ini.sizeX_+1,:] = sqrt((ini.ux[1:ini.sizeX_+1,:]**2 + ini.uy[1:ini.sizeX_+1,:]**2)/2)
 
     #Calculating drag force on the cylinder
-    F_drag = 0
-    for j in range(2,ini.sizeY_):
-        j_n = (j-1) 
-        j_p = (j+1)
-        for i in range(2,ini.sizeX_):
-            i_n = (i-1) 
-            i_p = (i+1)
-            if (ini.m[i,j] == 0): 
-                if (ini.m[i_p,j] == 1):    F_drag += ini.ux[i,j]**2
-                if (ini.m[i,j_p] == 1):    F_drag += ini.uy[i,j]**2
-                if (ini.m[i_n,j] == 1):    F_drag += ini.ux[i,j]**2
-                if (ini.m[i,j_n] == 1):    F_drag += ini.uy[i,j]**2
-                if (ini.m[i_p,j_p] == 1):  F_drag += ini.u[i,j]**2
-                if (ini.m[i_n,j_p] == 1):  F_drag += ini.u[i,j]**2
-                if (ini.m[i_n,j_n] == 1):  F_drag += ini.u[i,j]**2
-                if (ini.m[i_p,j_n] == 1):  F_drag += ini.u[i,j]**2
-    #F_drag = F_drag
-    ini.Ft[t] = F_drag 
+    # F_drag = 0
+    # for j in range(2,ini.sizeY_):
+    #     j_n = (j-1) 
+    #     j_p = (j+1)
+    #     for i in range(2,ini.sizeX_):
+    #         i_n = (i-1) 
+    #         i_p = (i+1)
+    #         if (ini.m[i,j] == 0): 
+    #             if (ini.m[i_p,j] == 1):    F_drag += ini.ux[i,j]**2
+    #             if (ini.m[i,j_p] == 1):    F_drag += ini.uy[i,j]**2
+    #             if (ini.m[i_n,j] == 1):    F_drag += ini.ux[i,j]**2
+    #             if (ini.m[i,j_n] == 1):    F_drag += ini.uy[i,j]**2
+    #             if (ini.m[i_p,j_p] == 1):  F_drag += ini.u[i,j]**2
+    #             if (ini.m[i_n,j_p] == 1):  F_drag += ini.u[i,j]**2
+    #             if (ini.m[i_n,j_n] == 1):  F_drag += ini.u[i,j]**2
+    #             if (ini.m[i_p,j_n] == 1):  F_drag += ini.u[i,j]**2
+    # #F_drag = F_drag
+    # ini.Ft[t] = F_drag 
 
     #Computing equilibrium distribution function
-    for j in range(1,ini.sizeY_+ 1):
+    for j in range(ini.sizeY_+2):
+        j_n = (j-1) if j > 0 else (ini.sizeY_+1)
+        j_p = (j+1) if j < (ini.sizeY_ + 1) else 0 
         for i in range(1,ini.sizeX_+ 1):
             if ini.m[i,j] == 0:
                 fct1 = ini.w[0]*ini.rho[i,j]
@@ -146,7 +147,7 @@ for t in range(ini.T):
 
     ini.tau[:,:,:] = maximum(ini.tau0, (1 - (ini.feq[:,:,:]/ini.f[:,:,:])))
     for a in range(9):
-       ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a] = np.where(ini.m[1:ini.sizeX_+1,1:ini.sizeY_+1] == 0, ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - (ini.ftemp[1:ini.sizeX_+1,1:ini.sizeY_+1,a] - ini.feq[1:ini.sizeX_+1,1:ini.sizeY_+1,a]) / ini.tau[1:ini.sizeX_+1,1:ini.sizeY_+1,a].max(), ini.f[1:ini.sizeX_+1,1:ini.sizeY_+1,a])
+       ini.f[1:ini.sizeX_+1,:,a] = np.where(ini.m[1:ini.sizeX_+1,:] == 0, ini.ftemp[1:ini.sizeX_+1,:,a] - (ini.ftemp[1:ini.sizeX_+1,:,a] - ini.feq[1:ini.sizeX_+1,:,a]) / ini.tau[1:ini.sizeX_+1,:,a].max(), ini.f[1:ini.sizeX_+1,:,a])
 
 
     #Plotting 
@@ -158,17 +159,21 @@ for t in range(ini.T):
     #print ini.ux[ini.sizeX_//2,ini.sizeY_//2] 
 
     #To save the density and velocity distribution
-    np.save(os.path.join(ini.name, "rho_" + ini.name + "_" + str(t).zfill(4)), ini.rho)
-    np.save(os.path.join(ini.name, "ux_" + ini.name + "_" + str(t).zfill(4)), ini.ux)     
+    # np.save(os.path.join(ini.name, "rho_" + ini.name + "_" + str(t).zfill(4)), ini.rho)
+    # np.save(os.path.join(ini.name, "ux_" + ini.name + "_" + str(t).zfill(4)), ini.ux)     
 
-    # if mod(t,5) == 0:
-    #     varm = ini.ux.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
-    #     plt.figure(1)
-    #     ax = sns.heatmap(varm, annot=False, vmin=0., vmax=0.6, cmap='RdYlBu_r')           #For ux
-    #     #ax = sns.heatmap(varm, annot=False, vmin=5.*ini.f_init, vmax=18*ini.f_init, cmap='RdYlBu_r')           #For rho
-    #     ax.invert_yaxis()
-    #     plt.pause(0.001)
-    #     plt.clf()
+    if mod(t,50) == 0:
+        varm = ini.u.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
+        plt.figure(1)
+        ax = sns.heatmap(varm, annot=False, vmin=0., vmax=0.3, cmap='RdYlBu_r')           #For ux
+        #figure(num=1, figsize=(15,6), dpi=80, facecolor='w', edgecolor='k')
+        fig = plt.gcf()
+        fig.set_size_inches(20.,5., forward=True)
+        #ax = sns.heatmap(varm, annot=False, vmin=5.*ini.f_init, vmax=18*ini.f_init, cmap='RdYlBu_r')           #For rho
+        ax.invert_yaxis()
+        #plt.pause(0.001)
+        plt.savefig("vel."+ini.name2+"_"+str(t).zfill(6)+".png")
+        plt.clf()
 
     #Plot cross-section velocity
     # plt.figure(2)
@@ -181,7 +186,7 @@ for t in range(ini.T):
     # plt.clf()
 
     
-#Plot cross-section velocity
+    #Plot drag force vs time
     # if mod(t,5) == 0:
     #     plt.figure(3)
     #     plt.plot(range(ini.T), ini.Ft, label='Outlet')
@@ -191,6 +196,6 @@ for t in range(ini.T):
     #     plt.clf()
 
 #To save the force
-np.save(os.path.join(ini.name, "dragForce_" + ini.name), ini.Ft)
+# np.save(os.path.join(ini.name, "dragForce_" + ini.name), ini.Ft)
 
 ####################################################### OUTPUT ###########################################################################
