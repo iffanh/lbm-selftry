@@ -4,10 +4,11 @@ import scipy.io as sp
 
 
 # #importing grid
-m = genfromtxt('../porestructure/cylinder_45.dat', delimiter="\t")
+m = genfromtxt('../porestructure/cylinder2_45.dat', delimiter="\t")
 m = m.transpose()
 
 name = "r45_u3"
+name2 = "Re50_ux02"
 
 #What we have now:
 # 1. channel_5.dat
@@ -23,7 +24,7 @@ sizeX_ = len(m) - 2         #length in x-direction
 sizeY_ = len(m[0]) - 2        #length in y-direction
 
 #The number of iteration
-T = 1000            #Total time used in the simulation
+T = 20000            #Total time used in the simulation
 dt = 1             #time interval
 
 #Declaring variables
@@ -41,8 +42,8 @@ tau = zeros((sizeX_+2,sizeY_+2,9))
 Ft = zeros(T)
 
 #Constants used
-Re_x = 1.
-ux0 = 0.3
+Re_x = 50.
+ux0 = 0.2
 uy0 = 0.2
 r = 45./2.   
 visc = ux0*r/Re_x             #kinematic viscosity
@@ -65,7 +66,7 @@ def is_interior(i,j):
 #Initialize density distribution f, ...
 
 f_init = 0.1
-for j in range(1,sizeY_+ 1):
+for j in range(sizeY_+ 2):
     for i in range(1, sizeX_+ 1):                 
         if m[i,j] == 0:
             for a in range(9):
@@ -74,7 +75,7 @@ for j in range(1,sizeY_+ 1):
 ###Von Neumann Boundary condition
 #Initializing flux boundary density distribution
 for i in range(1,sizeX_+ 1):
-    for j in range(1,sizeY_ + 1):
+    for j in range(sizeY_ + 2):
         if m[i,j] == 2:
             #West side
             for a in [0,2,3,4,6,7]:
