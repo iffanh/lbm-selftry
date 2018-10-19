@@ -17,15 +17,22 @@ for t in range(ini.T):
 
     #ini.ux0 = ini.ux0 + sin(t*pi/7)/50
     #Zou and He velocity BCs on west side
-    for j in range(ini.sizeY_+2):
-        for i in range(1,ini.sizeX_+1):
-            if ini.m[i,j] == 2:
-                ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,2] + ini.f[i,j,4] + 2.*(ini.f[i,j,3] + ini.f[i,j,7] + ini.f[i,j,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2*j*pi/ini.sizeY_)))
-                ru = ini.rho[i,j]*ini.ux0*(1 + 1e-3*sin(2*j*pi/ini.sizeY_))
-                ini.f[i,j,1] = ini.f[i,j,3] + (2./3.)*ru
-                ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,2] - ini.f[i,j,4])# + sin(t*pi/7)/2
-                ini.f[i,j,8] = ini.f[i,j,6] + (1./6.)*ru - (1./2.)*(ini.f[i,j,4] - ini.f[i,j,2])# - sin(t*pi/7)/2
-    
+    # for j in range(ini.sizeY_+2):
+    #     for i in range(1,ini.sizeX_+1):
+    #         if ini.m[i,j] == 2:
+    #             ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,2] + ini.f[i,j,4] + 2.*(ini.f[i,j,3] + ini.f[i,j,7] + ini.f[i,j,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2*j*pi/ini.sizeY_)))
+    #             ru = ini.rho[i,j]*ini.ux0*(1 + 1e-3*sin(2*j*pi/ini.sizeY_))
+    #             ini.f[i,j,1] = ini.f[i,j,3] + (2./3.)*ru
+    #             ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,2] - ini.f[i,j,4])# + sin(t*pi/7)/2
+    #             ini.f[i,j,8] = ini.f[i,j,6] + (1./6.)*ru - (1./2.)*(ini.f[i,j,4] - ini.f[i,j,2])# - sin(t*pi/7)/2
+
+    #special case for speed
+    ini.rho[1,:] = (ini.f[1,:,0] + ini.f[1,:,2] + ini.f[1,:,4] + 2.*(ini.f[1,:,3] + ini.f[1,:,7] + ini.f[1,:,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2.*arange(ini.sizeY_+2)*pi/ini.sizeY_)))
+    ru = ini.rho[1,:]*ini.ux0*(1 + 1e-4*sin(2*arange(ini.sizeY_+2)*pi/ini.sizeY_ + 2))
+    ini.f[1,:,1] = abs(ini.f[1,:,3] + (2./3.)*ru)
+    ini.f[1,:,5] = abs(ini.f[1,:,7] + (1./6.)*ru - (1./2.)*(ini.f[1,:,2] - ini.f[1,:,4]))# + sin(t*pi/7)/2
+    ini.f[1,:,8] = abs(ini.f[1,:,6] + (1./6.)*ru - (1./2.)*(ini.f[1,:,4] - ini.f[1,:,2]))# - sin(t*pi/7)/2
+
     # Zou and He velocity BCs on south side
     # for j in range(1,ini.sizeY_+1):
     #     for i in range(1,ini.sizeX_+1):
@@ -41,7 +48,7 @@ for t in range(ini.T):
     ini.rho[:,:] = 0.
     for a in range(9):
         ini.f[:,:,a] = np.where(ini.f[:,:,a] > ini.f_tol, ini.f[:,:,a], ini.f_tol)
-        ini.rho[:,:] += np.where(ini.m[i,j] == 0, ini.f[:,:,a], 0)
+        ini.rho[:,:] += np.where(ini.m[:,:] == 0, ini.f[:,:,a], 0)
 
     #Streaming step
     ini.ftemp[:,:,0] = ini.f[:,:,0]
@@ -86,8 +93,10 @@ for t in range(ini.T):
         ini.rho[1:ini.sizeX_+1,:] += ini.ftemp[1:ini.sizeX_+1,:,a]    
         ini.ux[1:ini.sizeX_+1,:] += ini.e_[0,a]*ini.ftemp[1:ini.sizeX_+1,:,a]
         ini.uy[1:ini.sizeX_+1,:] += ini.e_[1,a]*ini.ftemp[1:ini.sizeX_+1,:,a]
-    ini.ux[1:ini.sizeX_+1,:] = np.where(ini.rho[1:ini.sizeX_+1,:] > ini.f_tol, ini.ux[1:ini.sizeX_+1,:]/ini.rho[1:ini.sizeX_+1,:], ini.ux[1:ini.sizeX_+1,:]/(9*ini.f_tol))
-    ini.uy[1:ini.sizeX_+1,:] = np.where(ini.rho[1:ini.sizeX_+1,:] > ini.f_tol, ini.uy[1:ini.sizeX_+1,:]/ini.rho[1:ini.sizeX_+1,:], ini.uy[1:ini.sizeX_+1,:]/(9*ini.f_tol))
+    # ini.ux[1:ini.sizeX_+1,:] = np.where(ini.rho[1:ini.sizeX_+1,:] > ini.f_tol, ini.ux[1:ini.sizeX_+1,:]/ini.rho[1:ini.sizeX_+1,:], ini.ux[1:ini.sizeX_+1,:]/(9.*ini.f_tol))
+    # ini.uy[1:ini.sizeX_+1,:] = np.where(ini.rho[1:ini.sizeX_+1,:] > ini.f_tol, ini.uy[1:ini.sizeX_+1,:]/ini.rho[1:ini.sizeX_+1,:], ini.uy[1:ini.sizeX_+1,:]/(9.*ini.f_tol))
+    ini.ux[1:ini.sizeX_+1,:] = ini.ux[1:ini.sizeX_+1,:]/ini.rho[1:ini.sizeX_+1,:]
+    ini.uy[1:ini.sizeX_+1,:] = ini.uy[1:ini.sizeX_+1,:]/ini.rho[1:ini.sizeX_+1,:]
     ini.u[1:ini.sizeX_+1,:] = sqrt((ini.ux[1:ini.sizeX_+1,:]**2 + ini.uy[1:ini.sizeX_+1,:]**2)/2)
 
     #Calculating drag force on the cylinder
@@ -111,43 +120,50 @@ for t in range(ini.T):
     # ini.Ft[t] = F_drag 
 
     #Computing equilibrium distribution function
-    for j in range(ini.sizeY_+2):
-        j_n = (j-1) if j > 0 else (ini.sizeY_+1)
-        j_p = (j+1) if j < (ini.sizeY_ + 1) else 0 
-        for i in range(1,ini.sizeX_+ 1):
-            if ini.m[i,j] == 0:
-                fct1 = ini.w[0]*ini.rho[i,j]
-                fct2 = ini.w[1]*ini.rho[i,j]
-                fct3 = ini.w[2]*ini.rho[i,j]
+    # for j in range(ini.sizeY_+2):
+    #     j_n = (j-1) if j > 0 else (ini.sizeY_+1)
+    #     j_p = (j+1) if j < (ini.sizeY_ + 1) else 0 
+    #     for i in range(1,ini.sizeX_+ 1):
+    #         if ini.m[i,j] == 0:
+    fct1 = ini.w[0]*ini.rho[:,:]
+    fct2 = ini.w[1]*ini.rho[:,:]
+    fct3 = ini.w[2]*ini.rho[:,:]
 
-                ini.uxeq[i,j] = ini.ux[i,j]                                       #uxeq will incorporate external forces, if any
-                ini.uyeq[i,j] = ini.uy[i,j] 
+    ini.uxeq[:,:] = ini.ux[:,:]                                       #uxeq will incorporate external forces, if any
+    ini.uyeq[:,:] = ini.uy[:,:] 
 
-                uxsq = ini.uxeq[i,j]*ini.uxeq[i,j]
-                uysq = ini.uyeq[i,j]*ini.uyeq[i,j]
+    ini.uxsq[:,:] = ini.uxeq[:,:]*ini.uxeq[:,:]
+    ini.uysq[:,:] = ini.uyeq[:,:]*ini.uyeq[:,:]
 
-                uxuy5 = ini.uxeq[i,j] + ini.uyeq[i,j]
-                uxuy6 = -ini.uxeq[i,j] + ini.uyeq[i,j]
-                uxuy7 = -ini.uxeq[i,j] - ini.uyeq[i,j]
-                uxuy8 = ini.uxeq[i,j] - ini.uyeq[i,j]
+    ini.uxuy5[:,:] = ini.uxeq[:,:] + ini.uyeq[:,:]
+    ini.uxuy6[:,:] = -ini.uxeq[:,:] + ini.uyeq[:,:]
+    ini.uxuy7[:,:] = -ini.uxeq[:,:] - ini.uyeq[:,:]
+    ini.uxuy8[:,:] = ini.uxeq[:,:] - ini.uyeq[:,:]
 
-                usq = uxsq + uysq
+    ini.usq[:,:] = ini.uxsq[:,:] + ini.uysq[:,:]
 
-                ini.feq[i,j,0] = fct1*(1.                                                   - ini.c_eq[2]*usq)
-                ini.feq[i,j,1] = fct2*(1. + ini.c_eq[0]*ini.uxeq[i,j] + ini.c_eq[1]*uxsq    - ini.c_eq[2]*usq)
-                ini.feq[i,j,2] = fct2*(1. + ini.c_eq[0]*ini.uyeq[i,j] + ini.c_eq[1]*uysq    - ini.c_eq[2]*usq)
-                ini.feq[i,j,3] = fct2*(1. - ini.c_eq[0]*ini.uxeq[i,j] + ini.c_eq[1]*uxsq    - ini.c_eq[2]*usq)
-                ini.feq[i,j,4] = fct2*(1. - ini.c_eq[0]*ini.uyeq[i,j] + ini.c_eq[1]*uysq    - ini.c_eq[2]*usq)
-                ini.feq[i,j,5] = fct3*(1. + ini.c_eq[0]*uxuy5 + ini.c_eq[1]*uxuy5*uxuy5  - ini.c_eq[2]*usq)
-                ini.feq[i,j,6] = fct3*(1. + ini.c_eq[0]*uxuy6 + ini.c_eq[1]*uxuy6*uxuy6  - ini.c_eq[2]*usq)
-                ini.feq[i,j,7] = fct3*(1. + ini.c_eq[0]*uxuy7 + ini.c_eq[1]*uxuy7*uxuy7  - ini.c_eq[2]*usq)
-                ini.feq[i,j,8] = fct3*(1. + ini.c_eq[0]*uxuy8 + ini.c_eq[1]*uxuy8*uxuy8  - ini.c_eq[2]*usq)
+    ini.feq[:,:,0] = fct1*(1.                                                   - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,1] = fct2*(1. + ini.c_eq[0]*ini.uxeq[:,:] + ini.c_eq[1]*ini.uxsq[:,:]    - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,2] = fct2*(1. + ini.c_eq[0]*ini.uyeq[:,:] + ini.c_eq[1]*ini.uysq[:,:]    - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,3] = fct2*(1. - ini.c_eq[0]*ini.uxeq[:,:] + ini.c_eq[1]*ini.uxsq[:,:]    - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,4] = fct2*(1. - ini.c_eq[0]*ini.uyeq[:,:] + ini.c_eq[1]*ini.uysq[:,:]    - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,5] = fct3*(1. + ini.c_eq[0]*ini.uxuy5[:,:] + ini.c_eq[1]*ini.uxuy5[:,:]*ini.uxuy5[:,:]  - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,6] = fct3*(1. + ini.c_eq[0]*ini.uxuy6[:,:] + ini.c_eq[1]*ini.uxuy6[:,:]*ini.uxuy6[:,:]  - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,7] = fct3*(1. + ini.c_eq[0]*ini.uxuy7[:,:] + ini.c_eq[1]*ini.uxuy7[:,:]*ini.uxuy7[:,:]  - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,8] = fct3*(1. + ini.c_eq[0]*ini.uxuy8[:,:] + ini.c_eq[1]*ini.uxuy8[:,:]*ini.uxuy8[:,:]  - ini.c_eq[2]*ini.usq[:,:])
 
     #Collision step
 
-    ini.tau[:,:,:] = maximum(ini.tau0, (1 - (ini.feq[:,:,:]/ini.f[:,:,:])))
+    # ini.tau[:,:,:] = maximum(ini.tau0, (1 - (ini.feq[:,:,:]/ini.f[:,:,:])))
+    # for a in range(9):
+    #    ini.f[1:ini.sizeX_+1,:,a] = np.where(ini.m[1:ini.sizeX_+1,:] == 0, ini.ftemp[1:ini.sizeX_+1,:,a] - (ini.ftemp[1:ini.sizeX_+1,:,a] - ini.feq[1:ini.sizeX_+1,:,a]) / ini.tau[1:ini.sizeX_+1,:,a], ini.f[1:ini.sizeX_+1,:,a])
+    #    #ini.f[1:ini.sizeX_+1,:,a] = np.where(ini.m[1:ini.sizeX_+1,:] == 0, ini.ftemp[1:ini.sizeX_+1,:,a] - (ini.ftemp[1:ini.sizeX_+1,:,a] - ini.feq[1:ini.sizeX_+1,:,a]) / ini.tau0, ini.f[1:ini.sizeX_+1,:,a])
+
+    #ONLY TEST BEFORE FRIDAY PRAYER 19/10
+    ini.tau[:,:,:] = maximum(ini.tau0, (1 - (ini.feq[:,:,:]/ini.ftemp[:,:,:])))
     for a in range(9):
-       ini.f[1:ini.sizeX_+1,:,a] = np.where(ini.m[1:ini.sizeX_+1,:] == 0, ini.ftemp[1:ini.sizeX_+1,:,a] - (ini.ftemp[1:ini.sizeX_+1,:,a] - ini.feq[1:ini.sizeX_+1,:,a]) / ini.tau[1:ini.sizeX_+1,:,a].max(), ini.f[1:ini.sizeX_+1,:,a])
+       ini.f[1:ini.sizeX_+1,:,a] = np.where(ini.m[1:ini.sizeX_+1,:] == 0, ini.ftemp[1:ini.sizeX_+1,:,a] - (ini.ftemp[1:ini.sizeX_+1,:,a] - ini.feq[1:ini.sizeX_+1,:,a]) / ini.tau[1:ini.sizeX_+1,:,a], ini.f[1:ini.sizeX_+1,:,a])
+       #ini.f[1:ini.sizeX_+1,:,a] = np.where(ini.m[1:ini.sizeX_+1,:] == 0, ini.ftemp[1:ini.sizeX_+1,:,a] - (ini.ftemp[1:ini.sizeX_+1,:,a] - ini.feq[1:ini.sizeX_+1,:,a]) / ini.tau0, ini.f[1:ini.sizeX_+1,:,a])
 
 
     #Plotting 
@@ -155,17 +171,17 @@ for t in range(ini.T):
     print "Mass = ", sum(ini.rho)
     print "Velocity x dir = ", sum(ini.ux)
     print "Velocity y dir = ", sum(ini.uy)
-    print ini.Ft[t]
+    print ini.f[2:ini.sizeX_,2:ini.sizeY_,:].min()
     #print ini.ux[ini.sizeX_//2,ini.sizeY_//2] 
 
     #To save the density and velocity distribution
     # np.save(os.path.join(ini.name, "rho_" + ini.name + "_" + str(t).zfill(4)), ini.rho)
     # np.save(os.path.join(ini.name, "ux_" + ini.name + "_" + str(t).zfill(4)), ini.ux)     
 
-    if mod(t,50) == 0:
+    if mod(t,100) == 0:
         varm = ini.u.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
         plt.figure(1)
-        ax = sns.heatmap(varm, annot=False, vmin=0., vmax=0.3, cmap='RdYlBu_r')           #For ux
+        ax = sns.heatmap(varm, annot=False, vmin=0., vmax=0.2, cmap='RdYlBu_r')           #For ux
         #figure(num=1, figsize=(15,6), dpi=80, facecolor='w', edgecolor='k')
         fig = plt.gcf()
         fig.set_size_inches(20.,5., forward=True)
