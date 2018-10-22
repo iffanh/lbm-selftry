@@ -4,11 +4,11 @@ import scipy.io as sp
 
 
 # #importing grid
-m = genfromtxt('../porestructure/cylinder2_15.dat', delimiter="\t")
+m = genfromtxt('../porestructure/cylinder2_45.dat', delimiter="\t")
 m = m.transpose()
 
 name = "r45_u3"
-name2 = "Re50_ux004_gradinit2_tau"
+name2 = "Re25_tauc_cy45"
 
 #What we have now:
 # 1. channel_5.dat
@@ -55,7 +55,7 @@ usq = zeros((sizeX_+2,sizeY_+2))
 
 
 #Constants used
-Re_x = 50.
+Re_x = 25.
 ux0 = 0.04
 uy0 = 0.2
 r = 45./2.   

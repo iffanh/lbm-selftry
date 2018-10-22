@@ -15,34 +15,19 @@ import os
 
 for t in range(ini.T):
 
-    #ini.ux0 = ini.ux0 + sin(t*pi/7)/50
-    #Zou and He velocity BCs on west side
-    # for j in range(ini.sizeY_+2):
-    #     for i in range(1,ini.sizeX_+1):
-    #         if ini.m[i,j] == 2:
-    #             ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,2] + ini.f[i,j,4] + 2.*(ini.f[i,j,3] + ini.f[i,j,7] + ini.f[i,j,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2*j*pi/ini.sizeY_)))
-    #             ru = ini.rho[i,j]*ini.ux0*(1 + 1e-3*sin(2*j*pi/ini.sizeY_))
-    #             ini.f[i,j,1] = ini.f[i,j,3] + (2./3.)*ru
-    #             ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,2] - ini.f[i,j,4])# + sin(t*pi/7)/2
-    #             ini.f[i,j,8] = ini.f[i,j,6] + (1./6.)*ru - (1./2.)*(ini.f[i,j,4] - ini.f[i,j,2])# - sin(t*pi/7)/2
+    #For smoothing, test friday 19/10/2018
+    if t == 0:
+        ini.tau0 = 2.*ini.tau0
+
+    if t == 100:
+        ini.tau0 = ini.tau0/2.
 
     #special case for speed
     ini.rho[1,:] = (ini.f[1,:,0] + ini.f[1,:,2] + ini.f[1,:,4] + 2.*(ini.f[1,:,3] + ini.f[1,:,7] + ini.f[1,:,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2.*arange(ini.sizeY_+2)*pi/ini.sizeY_)))
     ru = ini.rho[1,:]*ini.ux0*(1 + 1e-4*sin(2*arange(ini.sizeY_+2)*pi/ini.sizeY_ + 2))
     ini.f[1,:,1] = abs(ini.f[1,:,3] + (2./3.)*ru)
-    ini.f[1,:,5] = abs(ini.f[1,:,7] + (1./6.)*ru - (1./2.)*(ini.f[1,:,2] - ini.f[1,:,4]))# + sin(t*pi/7)/2
-    ini.f[1,:,8] = abs(ini.f[1,:,6] + (1./6.)*ru - (1./2.)*(ini.f[1,:,4] - ini.f[1,:,2]))# - sin(t*pi/7)/2
-
-    # Zou and He velocity BCs on south side
-    # for j in range(1,ini.sizeY_+1):
-    #     for i in range(1,ini.sizeX_+1):
-    #         if ini.m[i,j] == 3:
-    #             ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,1] + ini.f[i,j,3] + 2.*(ini.f[i,j,4] + ini.f[i,j,7] + ini.f[i,j,8])) / (1 - ini.uy0)
-    #             ru = ini.rho[i,j]*ini.uy0
-    #             ini.f[i,j,2] = ini.f[i,j,4] + (2./3.)*ru
-    #             ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,1] - ini.f[i,j,3])
-    #             ini.f[i,j,6] = ini.f[i,j,8] + (1./6.)*ru - (1./2.)*(ini.f[i,j,3] - ini.f[i,j,1])
-                
+    ini.f[1,:,5] = abs(ini.f[1,:,7] + (1./6.)*ru - (1./2.)*(ini.f[1,:,2] - ini.f[1,:,4]))
+    ini.f[1,:,8] = abs(ini.f[1,:,6] + (1./6.)*ru - (1./2.)*(ini.f[1,:,4] - ini.f[1,:,2]))
 
     # ... computing density for imaging
     ini.rho[:,:] = 0.
