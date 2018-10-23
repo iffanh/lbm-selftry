@@ -5,7 +5,7 @@ import scipy.io as sp
 
 
 # #importing grid
-m = genfromtxt('porestructure/empty_30.dat', delimiter="\t")
+m = genfromtxt('../porestructure/empty_30.dat', delimiter="\t")
 m = m.transpose()
 
 #What we have now:
@@ -23,7 +23,7 @@ sizeX_ = len(m) - 2         #length in x-direction
 sizeY_ = len(m[0]) - 2        #length in y-direction
 
 #The number of iteration
-T = 1000            #Total time used in the simulation
+T = 20000            #Total time used in the simulation
 dt = 1             #time interval
 
 #m = [[0 for j in xrange(sizeY_ + 2)] for i in xrange(sizeX_ + 2)]                       #Presence of m or not, 1 means m
@@ -42,6 +42,17 @@ feq = zeros((sizeX_+2,sizeY_+2,9))
 tau = zeros((sizeX_+2,sizeY_+2,9))
 P = zeros((sizeX_+2,sizeY_+2))
 
+uxeq = zeros((sizeX_+2,sizeY_+2))                                       #uxeq will incorporate external forces, if any
+uyeq = zeros((sizeX_+2,sizeY_+2)) 
+uxsq = zeros((sizeX_+2,sizeY_+2))
+uysq = zeros((sizeX_+2,sizeY_+2))
+uxuy5 = zeros((sizeX_+2,sizeY_+2))
+uxuy6 = zeros((sizeX_+2,sizeY_+2))
+uxuy7 = zeros((sizeX_+2,sizeY_+2))
+uxuy8 = zeros((sizeX_+2,sizeY_+2))
+usq = zeros((sizeX_+2,sizeY_+2))
+
+
 #SCMP variables
 psi = zeros((sizeX_+2,sizeY_+2))                        #Interaction potential
 Fx = zeros((sizeX_+2,sizeY_+2))                        #Interaction potential
@@ -49,20 +60,20 @@ Fy = zeros((sizeX_+2,sizeY_+2))                        #Interaction potential
 
 
 #Constants used
-Re_x = 1.
-ux0 = 1.
-uy0 = 0.2   
-visc = ux0*1./Re_x             #kinematic viscosity
-tau0 = 3*visc + 0.5                
+#Re_x = 1.
+#ux0 = 1.
+#uy0 = 0.2   
+#visc = (ux0*1)/Re_x             #kinematic viscosity
+tau0 = 2. #3*visc + 0.5                
 e_ = array([[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],[0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]])         
 w = array([4.0/9.0, 1.0/9.0, 1.0/36.0])
 c_eq = array([3., 9./2., 3./2.])
-f_tol = 0.00000
+f_tol = 0.01
 
 #SCMP variables
 rho0 = 200.
 psi0 = 4.
-G = -140.
+G = -120.
 #Fx = 0.
 #Fy = 0.
 
@@ -77,29 +88,29 @@ def is_interior(i,j):
 ####Initial Condition for density distribution, f
 #Initialize density distribution f, ...
 
-f_init = 22.
+f_init = 0.1
 # for j in range(1,sizeY_+ 1):
 #     for i in range(1, sizeX_+ 1):    
 for j in range(sizeY_+ 2):
     for i in range(sizeX_+ 2):             
         if m[i,j] == 0:
             for a in range(9):
-                f[i,j,a] = f_init + 10*random.uniform(0,1)
+                f[i,j,a] = f_init + 0.01*random.uniform(0,1)
 
 ###Von Neumann Boundary condition
 #Initializing flux boundary density distribution
 # for i in range(1,sizeX_+ 1):
 #     for j in range(1,sizeY_ + 1):
-for j in range(sizeY_+ 2):
-    for i in range(sizeX_+ 2): 
-        if m[i,j] == 2:
-            #West side
-            for a in [0,2,3,4,6,7]:
-                f[i,j,a] = f_init
+# for j in range(sizeY_+ 2):
+#     for i in range(sizeX_+ 2): 
+#         if m[i,j] == 2:
+#             #West side
+#             for a in [0,2,3,4,6,7]:
+#                 f[i,j,a] = f_init
 
 #print f[:,:,[0,2,3,4,6,7]]
 ###Reynold Number
 
-print "kinematic viscosity: ", visc
+#print "kinematic viscosity: ", visc
 print "relaxation parameter, tau: ", tau0
 

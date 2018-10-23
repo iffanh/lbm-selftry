@@ -13,32 +13,33 @@ import lbm_inputdataSCMP as ini             #import from theinput file
 
 for t in range(ini.T):
 
-    #Zou and He velocity BCs on west side
-    for j in range(1,ini.sizeY_+1):
-        for i in range(1,ini.sizeX_+1):
-            if ini.m[i,j] == 2:
-                ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,2] + ini.f[i,j,4] + 2.*(ini.f[i,j,3] + ini.f[i,j,7] + ini.f[i,j,6])) / (1 - ini.ux0)
-                ru = ini.rho[i,j]*ini.ux0
-                ini.f[i,j,1] = ini.f[i,j,3] + (2./3.)*ru
-                ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,2] - ini.f[i,j,4])
-                ini.f[i,j,8] = ini.f[i,j,6] + (1./6.)*ru - (1./2.)*(ini.f[i,j,4] - ini.f[i,j,2])
+    # #Zou and He velocity BCs on west side
+    # for j in range(1,ini.sizeY_+1):
+    #     for i in range(1,ini.sizeX_+1):
+    #         if ini.m[i,j] == 2:
+    #             ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,2] + ini.f[i,j,4] + 2.*(ini.f[i,j,3] + ini.f[i,j,7] + ini.f[i,j,6])) / (1 - ini.ux0)
+    #             ru = ini.rho[i,j]*ini.ux0
+    #             ini.f[i,j,1] = ini.f[i,j,3] + (2./3.)*ru
+    #             ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,2] - ini.f[i,j,4])
+    #             ini.f[i,j,8] = ini.f[i,j,6] + (1./6.)*ru - (1./2.)*(ini.f[i,j,4] - ini.f[i,j,2])
     
-    #Zou and He velocity BCs on south side
-    for j in range(1,ini.sizeY_+1):
-        for i in range(1,ini.sizeX_+1):
-            if ini.m[i,j] == 3:
-                ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,1] + ini.f[i,j,3] + 2.*(ini.f[i,j,4] + ini.f[i,j,7] + ini.f[i,j,8])) / (1 - ini.uy0)
-                ru = ini.rho[i,j]*ini.uy0
-                ini.f[i,j,2] = ini.f[i,j,4] + (2./3.)*ru
-                ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,1] - ini.f[i,j,3])
-                ini.f[i,j,6] = ini.f[i,j,8] + (1./6.)*ru - (1./2.)*(ini.f[i,j,3] - ini.f[i,j,1])
+    # #Zou and He velocity BCs on south side
+    # for j in range(1,ini.sizeY_+1):
+    #     for i in range(1,ini.sizeX_+1):
+    #         if ini.m[i,j] == 3:
+    #             ini.rho[i,j] = (ini.f[i,j,0] + ini.f[i,j,1] + ini.f[i,j,3] + 2.*(ini.f[i,j,4] + ini.f[i,j,7] + ini.f[i,j,8])) / (1 - ini.uy0)
+    #             ru = ini.rho[i,j]*ini.uy0
+    #             ini.f[i,j,2] = ini.f[i,j,4] + (2./3.)*ru
+    #             ini.f[i,j,5] = ini.f[i,j,7] + (1./6.)*ru - (1./2.)*(ini.f[i,j,1] - ini.f[i,j,3])
+    #             ini.f[i,j,6] = ini.f[i,j,8] + (1./6.)*ru - (1./2.)*(ini.f[i,j,3] - ini.f[i,j,1])
                 
 
     # ... computing density for imaging
     ini.rho[:,:] = 0.
     for a in range(9):
         ini.f[:,:,a] = np.where(ini.f[:,:,a] > ini.f_tol, ini.f[:,:,a], ini.f_tol)
-        ini.rho[:,:] += np.where(ini.m[i,j] == 0, ini.f[:,:,a], 0)
+        ini.rho[:,:] += np.where(ini.m[:,:] == 0, ini.f[:,:,a], 0)
+    ini.rho[:,:] = ini.rho[:,:]*ini.rho0
         
     #print ini.f
 
@@ -140,41 +141,42 @@ for t in range(ini.T):
         ini.rho[:,:] += ini.ftemp[:,:,a]    
         ini.ux[:,:] += ini.e_[0,a]*ini.ftemp[:,:,a]
         ini.uy[:,:] += ini.e_[1,a]*ini.ftemp[:,:,a]
-    ini.ux[:,:] = np.where(ini.rho[:,:] > ini.f_tol, ini.ux[:,:]/ini.rho[:,:], ini.ux[:,:]/ini.rho[:,:])
-    ini.uy[:,:] = np.where(ini.rho[:,:] > ini.f_tol, ini.uy[:,:]/ini.rho[:,:], ini.uy[:,:]/ini.rho[:,:])
+    # ini.ux[:,:] = np.where(ini.rho[:,:] > ini.f_tol, ini.ux[:,:]/ini.rho[:,:], ini.ux[:,:]/ini.rho[:,:])
+    # ini.uy[:,:] = np.where(ini.rho[:,:] > ini.f_tol, ini.uy[:,:]/ini.rho[:,:], ini.uy[:,:]/ini.rho[:,:])
+    ini.rho[:,:] = ini.rho[:,:]*ini.rho0
+    ini.ux[:,:] = ini.ux[:,:]/ini.rho[:,:]
+    ini.uy[:,:] = ini.uy[:,:]/ini.rho[:,:]
     ini.u[:,:] = sqrt((ini.ux[:,:]**2 + ini.uy[:,:]**2)/2)
 
     #Computing equilibrium distribution function
-    for j in range(ini.sizeY_+2):
-        for i in range(ini.sizeX_+ 2):
-            if ini.m[i,j] == 0:
-                fct1 = ini.w[0]*ini.rho[i,j]
-                fct2 = ini.w[1]*ini.rho[i,j]
-                fct3 = ini.w[2]*ini.rho[i,j]
+    fct1 = ini.w[0]*ini.rho[:,:]/ini.rho0
+    fct2 = ini.w[1]*ini.rho[:,:]/ini.rho0
+    fct3 = ini.w[2]*ini.rho[:,:]/ini.rho0
 
-                ini.uxeq[i,j] = ini.ux[i,j]  + ini.tau0*ini.Fx[i,j]/ini.rho[i,j]                                     #uxeq will incorporate external forces, if any
-                ini.uyeq[i,j] = ini.uy[i,j]  + ini.tau0*ini.Fy[i,j]/ini.rho[i,j]
+    ini.uxeq[:,:] = ini.ux[:,:] + ini.Fx[:,:]*ini.tau0/ini.rho[:,:]                                      #uxeq will incorporate external forces, if any
+    ini.uyeq[:,:] = ini.uy[:,:] + ini.Fy[:,:]*ini.tau0/ini.rho[:,:] 
 
-                uxsq = ini.uxeq[i,j]*ini.uxeq[i,j]
-                uysq = ini.uyeq[i,j]*ini.uyeq[i,j]
+    ini.uxsq[:,:] = ini.uxeq[:,:]*ini.uxeq[:,:]
+    ini.uysq[:,:] = ini.uyeq[:,:]*ini.uyeq[:,:]
 
-                uxuy5 = ini.uxeq[i,j] + ini.uyeq[i,j]
-                uxuy6 = -ini.uxeq[i,j] + ini.uyeq[i,j]
-                uxuy7 = -ini.uxeq[i,j] - ini.uyeq[i,j]
-                uxuy8 = ini.uxeq[i,j] - ini.uyeq[i,j]
+    ini.uxuy5[:,:] = ini.uxeq[:,:] + ini.uyeq[:,:]
+    ini.uxuy6[:,:] = -ini.uxeq[:,:] + ini.uyeq[:,:]
+    ini.uxuy7[:,:] = -ini.uxeq[:,:] - ini.uyeq[:,:]
+    ini.uxuy8[:,:] = ini.uxeq[:,:] - ini.uyeq[:,:]
 
-                usq = uxsq + uysq
+    ini.usq[:,:] = ini.uxsq[:,:] + ini.uysq[:,:]
 
-                ini.feq[i,j,0] = fct1*(1.                                                   - ini.c_eq[2]*usq)
-                ini.feq[i,j,1] = fct2*(1. + ini.c_eq[0]*ini.uxeq[i,j] + ini.c_eq[1]*uxsq    - ini.c_eq[2]*usq)
-                ini.feq[i,j,2] = fct2*(1. + ini.c_eq[0]*ini.uyeq[i,j] + ini.c_eq[1]*uysq    - ini.c_eq[2]*usq)
-                ini.feq[i,j,3] = fct2*(1. - ini.c_eq[0]*ini.uxeq[i,j] + ini.c_eq[1]*uxsq    - ini.c_eq[2]*usq)
-                ini.feq[i,j,4] = fct2*(1. - ini.c_eq[0]*ini.uyeq[i,j] + ini.c_eq[1]*uysq    - ini.c_eq[2]*usq)
-                ini.feq[i,j,5] = fct3*(1. + ini.c_eq[0]*uxuy5 + ini.c_eq[1]*uxuy5*uxuy5  - ini.c_eq[2]*usq)
-                ini.feq[i,j,6] = fct3*(1. + ini.c_eq[0]*uxuy6 + ini.c_eq[1]*uxuy6*uxuy6  - ini.c_eq[2]*usq)
-                ini.feq[i,j,7] = fct3*(1. + ini.c_eq[0]*uxuy7 + ini.c_eq[1]*uxuy7*uxuy7  - ini.c_eq[2]*usq)
-                ini.feq[i,j,8] = fct3*(1. + ini.c_eq[0]*uxuy8 + ini.c_eq[1]*uxuy8*uxuy8  - ini.c_eq[2]*usq)
-
+    ini.feq[:,:,0] = fct1*(1.                                                   - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,1] = fct2*(1. + ini.c_eq[0]*ini.uxeq[:,:] + ini.c_eq[1]*ini.uxsq[:,:]    - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,2] = fct2*(1. + ini.c_eq[0]*ini.uyeq[:,:] + ini.c_eq[1]*ini.uysq[:,:]    - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,3] = fct2*(1. - ini.c_eq[0]*ini.uxeq[:,:] + ini.c_eq[1]*ini.uxsq[:,:]    - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,4] = fct2*(1. - ini.c_eq[0]*ini.uyeq[:,:] + ini.c_eq[1]*ini.uysq[:,:]    - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,5] = fct3*(1. + ini.c_eq[0]*ini.uxuy5[:,:] + ini.c_eq[1]*ini.uxuy5[:,:]*ini.uxuy5[:,:]  - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,6] = fct3*(1. + ini.c_eq[0]*ini.uxuy6[:,:] + ini.c_eq[1]*ini.uxuy6[:,:]*ini.uxuy6[:,:]  - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,7] = fct3*(1. + ini.c_eq[0]*ini.uxuy7[:,:] + ini.c_eq[1]*ini.uxuy7[:,:]*ini.uxuy7[:,:]  - ini.c_eq[2]*ini.usq[:,:])
+    ini.feq[:,:,8] = fct3*(1. + ini.c_eq[0]*ini.uxuy8[:,:] + ini.c_eq[1]*ini.uxuy8[:,:]*ini.uxuy8[:,:]  - ini.c_eq[2]*ini.usq[:,:])
+    
+    
     #Collision step
 
     # for j in range(ini.sizeY_+2):
@@ -182,15 +184,19 @@ for t in range(ini.T):
     #         if ini.m[i,j] == 0:
     #             for a in range(9):
     #                 ini.tau[i,j,a] = maximum(ini.tau0, (ini.ftemp[i,j,a] - ini.feq[i,j,a])/(ini.ftemp[i,j,a] + ini.f_tol))
+    # ini.tau[:,:,:] = maximum(ini.tau0, (1 - (ini.feq[:,:,:]/ini.ftemp[:,:,:])))
+
+    # print ini.tau
+    # for a in range(9):
+    #    ini.f[:,:,a] = np.where(ini.m[:,:] == 0, ini.ftemp[:,:,a] - ((ini.ftemp[:,:,a] - ini.feq[:,:,a]) / ini.tau.max()), ini.f[:,:,a])
+
     ini.tau[:,:,:] = maximum(ini.tau0, (1 - (ini.feq[:,:,:]/ini.ftemp[:,:,:])))
-
-    print ini.tau
     for a in range(9):
-       ini.f[:,:,a] = np.where(ini.m[:,:] == 0, ini.ftemp[:,:,a] - ((ini.ftemp[:,:,a] - ini.feq[:,:,a]) / ini.tau.max()), ini.f[:,:,a])
+       ini.f[:,:,a] = np.where(ini.m[:,:] == 0, ini.ftemp[:,:,a] - (ini.ftemp[:,:,a] - ini.feq[:,:,a]) / ini.tau[:,:,a], ini.f[:,:,a])
 
-    #print ini.f
+    print ini.f
 
-    if ini.f.min() < -0.000001:
+    if ini.f.min() < -0.00000:
         print "Operation terminated 2, negative probability found"
         print ini.f.min()
         break
@@ -202,14 +208,15 @@ for t in range(ini.T):
     print "Velocity y dir = ", sum(ini.uy)
     print ini.f.min()
 
-    if mod(t,1) == 0:
-        varm = ini.P.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
+    if mod(t,100) == 0:
+        varm = ini.rho.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
         plt.figure(1)
         #cmap = sns.cm.rocket_r
         #ax = sns.heatmap(varm, annot=False, vmin=0., vmax=0.6, cmap='RdYlBu_r')           #For ux
-        ax = sns.heatmap(varm, annot=False, vmin=0, vmax=30, cmap='RdYlBu_r')           #For rho
+        ax = sns.heatmap(varm, annot=False, vmin=0, vmax=400, cmap='RdYlBu_r')           #For rho
         ax.invert_yaxis()
-        plt.pause(0.001)
+        #plt.pause(0.001)
+        plt.savefig("rho_"+ini.name2+"_"+str(t).zfill(6)+".png")
         plt.clf()
 
 
