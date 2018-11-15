@@ -19,15 +19,29 @@ for t in range(ini.T):
     if t == 0:
         ini.tau0 = 2.*ini.tau0
 
-    if t == 100:
+    if t == 20:
         ini.tau0 = ini.tau0/2.
 
-    #special case for speed
-    ini.rho[1,:] = (ini.f[1,:,0] + ini.f[1,:,2] + ini.f[1,:,4] + 2.*(ini.f[1,:,3] + ini.f[1,:,7] + ini.f[1,:,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2.*arange(ini.sizeY_+2)*pi/ini.sizeY_)))
-    ru = ini.rho[1,:]*ini.ux0*(1 + 1e-4*sin(2*arange(ini.sizeY_+2)*pi/ini.sizeY_ + 2))
+    # #west part
+    # ini.rho[1,:] = (ini.f[1,:,0] + ini.f[1,:,2] + ini.f[1,:,4] + 2.*(ini.f[1,:,3] + ini.f[1,:,7] + ini.f[1,:,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2.*arange(ini.sizeY_+2)*pi/ini.sizeY_)))
+    # ru = ini.rho[1,:]*ini.ux0*(1 + 1e-4*sin(2*arange(ini.sizeY_+2)*pi/ini.sizeY_ + 2))
+    # ini.f[1,:,1] = abs(ini.f[1,:,3] + (2./3.)*ru)
+    # ini.f[1,:,5] = abs(ini.f[1,:,7] + (1./6.)*ru - (1./2.)*(ini.f[1,:,2] - ini.f[1,:,4]))
+    # ini.f[1,:,8] = abs(ini.f[1,:,6] + (1./6.)*ru - (1./2.)*(ini.f[1,:,4] - ini.f[1,:,2]))
+
+    #Flux on the left
+    ini.rho[1,:] = (ini.f[1,:,0] + ini.f[1,:,2] + ini.f[1,:,4] + 2.*(ini.f[1,:,3] + ini.f[1,:,7] + ini.f[1,:,6])) / (1 - ini.ux0_left*(1 + 1e-4*sin(2.*arange(ini.sizeY_+2)*pi/ini.sizeY_)))
+    ru = ini.rho[1,:]*ini.ux0_left*(1 + 1e-4*sin(2*arange(ini.sizeY_+2)*pi/ini.sizeY_ + 2))
     ini.f[1,:,1] = abs(ini.f[1,:,3] + (2./3.)*ru)
     ini.f[1,:,5] = abs(ini.f[1,:,7] + (1./6.)*ru - (1./2.)*(ini.f[1,:,2] - ini.f[1,:,4]))
     ini.f[1,:,8] = abs(ini.f[1,:,6] + (1./6.)*ru - (1./2.)*(ini.f[1,:,4] - ini.f[1,:,2]))
+
+    # #Flux on the right
+    # ini.rho[-2,:] = (ini.f[-2,:,0] + ini.f[-2,:,2] + ini.f[-2,:,4] + 2.*(ini.f[-2,:,1] + ini.f[-2,:,5] + ini.f[-2,:,8])) / (1 + ini.ux0_right*(1 + 1e-4*sin(2.*arange(ini.sizeY_+2)*pi/ini.sizeY_)))
+    # ru = ini.rho[1,:]*ini.ux0_right*(1 + 1e-4*sin(2*arange(ini.sizeY_+2)*pi/ini.sizeY_ + 2))
+    # ini.f[-2,:,3] = abs(ini.f[-2,:,1] - (2./3.)*ru)
+    # ini.f[-2,:,7] = abs(ini.f[-2,:,5] - (1./6.)*ru + (1./2.)*(ini.f[-2,:,2] - ini.f[-2,:,4]))
+    # ini.f[-2,:,6] = abs(ini.f[-2,:,8] - (1./6.)*ru + (1./2.)*(ini.f[-2,:,4] - ini.f[-2,:,2]))
 
     # ... computing density for imaging
     ini.rho[:,:] = 0.
@@ -166,14 +180,14 @@ for t in range(ini.T):
     if mod(t,100) == 0:
         varm = ini.u.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
         plt.figure(1)
-        ax = sns.heatmap(varm, annot=False, vmin=0., vmax=0.2, cmap='RdYlBu_r')           #For ux
+        ax = sns.heatmap(varm, annot=False, vmin=0., vmax=0.2, cmap='RdYlBu_r', mask=ini.m.transpose())           #For ux
         #figure(num=1, figsize=(15,6), dpi=80, facecolor='w', edgecolor='k')
         fig = plt.gcf()
         fig.set_size_inches(20.,5., forward=True)
         #ax = sns.heatmap(varm, annot=False, vmin=5.*ini.f_init, vmax=18*ini.f_init, cmap='RdYlBu_r')           #For rho
         ax.invert_yaxis()
         #plt.pause(0.001)
-        plt.savefig("vel."+ini.name2+"_"+str(t).zfill(6)+".png")
+        plt.savefig("vel_"+ini.name2+"_"+str(t).zfill(6)+".png")
         plt.clf()
 
     #Plot cross-section velocity

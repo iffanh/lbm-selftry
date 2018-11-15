@@ -7,8 +7,8 @@ import scipy.io as sp
 m = genfromtxt('../porestructure/cylinder2_45.dat', delimiter="\t")
 m = m.transpose()
 
-name = "r45_u3"
-name2 = "Re25_tauc_cy45"
+#name = "r45_u3"
+name2 = "Re220_project"
 
 #What we have now:
 # 1. channel_5.dat
@@ -55,11 +55,12 @@ usq = zeros((sizeX_+2,sizeY_+2))
 
 
 #Constants used
-Re_x = 25.
-ux0 = 0.04
+Re_x = 220.
+ux0_left = 0.04
+ux0_right = ux0_left*10.
 uy0 = 0.2
 r = 45./2.   
-visc = ux0*r/Re_x             #kinematic viscosity
+visc = ux0_left*r/Re_x             #kinematic viscosity
 tau0 = 3*visc + 0.5                
 e_ = array([[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],[0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]])         
 w = array([4.0/9.0, 1.0/9.0, 1.0/36.0])
@@ -78,12 +79,12 @@ def is_interior(i,j):
 ####Initial Condition for density distribution, f
 #Initialize density distribution f, ...
 
-f_init = 0.08
+f_init = 1./9.
 for j in range(sizeY_+ 2):
     for i in range(1, sizeX_+ 1):                 
         if m[i,j] == 0:
             for a in range(9):
-                f[i,j,a] = f_init *(1. - (i/(sizeX_ + 2))**1.)
+                f[i,j,a] = f_init #*(1. - (i/(sizeX_ + 2))**1.)
 
 ###Von Neumann Boundary condition
 #Initializing flux boundary density distribution
