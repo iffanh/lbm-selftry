@@ -26,7 +26,7 @@ sizeX_ = len(m) - 2         #length in x-direction
 sizeY_ = len(m[0]) - 2        #length in y-direction
 
 #The number of iteration
-T = 2000            #Total time used in the simulation
+T = 300            #Total time used in the simulation
 dt = 1             #time interval
 
 #Declaring variables
@@ -63,15 +63,18 @@ ru = zeros(sizeY_+2)
 Re_x = 100.
 # ux0_left = 0.04
 # ux0_right = ux0_left*1.5
-rho0 = 1.0
-rho_left = rho0*1.4
-rho_right = rho0*0.9
+rho0 = 0.8
+rho_left = 1.
+rho_right = 1.
 #visc = ux0_left*r/Re_x             #kinematic viscosity
 tau0 = 1.0 #3*visc + 0.5                
 e_ = array([[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],[0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]])         
 w = array([4.0/9.0, 1.0/9.0, 1.0/36.0])
 c_eq = array([3., 9./2., 3./2.])
 f_tol = 0.0001 
+
+beta = 2.
+gamma = log(beta)/2
 
 
 ####################################################### FUNCTIONS ###########################################################################
@@ -85,7 +88,7 @@ def is_interior(i,j):
 ####Initial Condition for density distribution, f
 #Initialize density distribution f, ...
 
-f_init = rho0
+f_init = 1.
 for j in range(1,sizeY_+ 1):
     for i in range(1, sizeX_+ 1):                 
         if m[i,j] == 0:
