@@ -4,7 +4,7 @@ import scipy.io as sp
 
 
 # #importing grid
-m = genfromtxt('../porestructure/klinkenberg_33.dat', delimiter="\t")
+m = genfromtxt('../porestructure/klinkenberg_11b.dat', delimiter="\t")
 m = m.transpose()
 
 #name = "r45_u3"
@@ -26,7 +26,7 @@ sizeX_ = len(m) - 2         #length in x-direction
 sizeY_ = len(m[0]) - 2        #length in y-direction
 
 #The number of iteration
-T = 1000            #Total time used in the simulation
+T = 2000            #Total time used in the simulation
 dt = 1             #time interval
 
 #Declaring variables
@@ -52,24 +52,26 @@ uxuy6 = zeros((sizeX_+2,sizeY_+2))
 uxuy7 = zeros((sizeX_+2,sizeY_+2))
 uxuy8 = zeros((sizeX_+2,sizeY_+2))
 usq = zeros((sizeX_+2,sizeY_+2))
+fct1 = zeros((sizeX_+2,sizeY_+2))
+fct2 = zeros((sizeX_+2,sizeY_+2))                                       #uxeq will incorporate external forces, if any
+fct3 = zeros((sizeX_+2,sizeY_+2))
 
 ru = zeros(sizeY_+2)
 
 
 #Constants used
-Re_x = 50.
+Re_x = 100.
 # ux0_left = 0.04
 # ux0_right = ux0_left*1.5
 rho0 = 1.0
-rho_left = rho0*1.
-rho_right = rho0*0.7
-r = 45./2.   
+rho_left = rho0*1.4
+rho_right = rho0*0.9
 #visc = ux0_left*r/Re_x             #kinematic viscosity
-tau0 = 0.7 #3*visc + 0.5                
+tau0 = 1.0 #3*visc + 0.5                
 e_ = array([[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],[0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]])         
 w = array([4.0/9.0, 1.0/9.0, 1.0/36.0])
 c_eq = array([3., 9./2., 3./2.])
-f_tol = 0.01 
+f_tol = 0.0001 
 
 
 ####################################################### FUNCTIONS ###########################################################################
@@ -83,12 +85,16 @@ def is_interior(i,j):
 ####Initial Condition for density distribution, f
 #Initialize density distribution f, ...
 
-f_init = rho0/9.
+f_init = rho0
 for j in range(1,sizeY_+ 1):
     for i in range(1, sizeX_+ 1):                 
         if m[i,j] == 0:
-            for a in range(9):
-                f[i,j,a] = f_init #*(1. - (i/(sizeX_ + 2))**1.)
+            for a in [0]:
+                f[i,j,a] = (4./9.)*f_init 
+            for a in [1,2,3,4]:
+                f[i,j,a] = (1./9.)*f_init
+            for a in [5,6,7,8]:
+                f[i,j,a] = (1./36.)*f_init 
 
 ###Von Neumann Boundary condition
 #Initializing flux boundary density distribution
@@ -96,14 +102,30 @@ for i in range(1,sizeX_+ 1):
     for j in range(1,sizeY_ + 1):
         if m[i,j] == 2:
             #West side
-            for a in [0,2,3,4,6,7]:
-            # for a in range(9):
-                f[i,j,a] = 1.*f_init
+            #for a in [0,2,3,4,6,7]:
+            f_init = rho_left
+            for a in [0]:
+                ftemp[i,j,a] = (4./9.)*f_init 
+                f[i,j,a] = ftemp[i,j,a]
+            for a in [2,3,4]:
+                ftemp[i,j,a] = (1./9.)*f_init
+                f[i,j,a] = ftemp[i,j,a]
+            for a in [6,7]:
+                ftemp[i,j,a] = (1./36.)*f_init
+                f[i,j,a] = ftemp[i,j,a] 
         if m[i,j] == 4:
             #East side
-            for a in [0,1,2,4,5,8]:
-            # for a in range(9):
-                f[i,j,a] = 1.*f_init
+            #for a in [0,1,2,4,5,8]:
+            f_init = rho_right
+            for a in [0]:
+                ftemp[i,j,a] = (4./9.)*f_init
+                f[i,j,a] = ftemp[i,j,a] 
+            for a in [1,2,4]:
+                ftemp[i,j,a] = (1./9.)*f_init
+                f[i,j,a] = ftemp[i,j,a]
+            for a in [5,8]:
+                ftemp[i,j,a] = (1./36.)*f_init
+                f[i,j,a] = ftemp[i,j,a] 
 
 #print f[:,:,[0,2,3,4,6,7]]
 ###Reynold Number
