@@ -23,11 +23,11 @@ import os
 for t in range(ini.T):
 
     #For smoothing, test friday 19/10/2018
-    if t == 0:
-        ini.tau0 = 2.*ini.tau0
+    #if t == 0:
+        #ini.tau0 = 2.*ini.tau0
 
-    if t == 20:
-        ini.tau0 = ini.tau0/2.
+    #if t == 20:
+        #ini.tau0 = ini.tau0/2.
 
     # #west part
     # ini.rho[1,:] = (ini.f[1,:,0] + ini.f[1,:,2] + ini.f[1,:,4] + 2.*(ini.f[1,:,3] + ini.f[1,:,7] + ini.f[1,:,6])) / (1 - ini.ux0*(1 + 1e-4*sin(2.*arange(ini.sizeY_+2)*pi/ini.sizeY_)))
@@ -38,7 +38,7 @@ for t in range(ini.T):
 
     #Pressure BC on the left
     #OK
-    ini.ru[:] = ini.rho_left - ((ini.ftemp[1,:,0] + ini.ftemp[1,:,2] + ini.ftemp[1,:,4] + 2.*(ini.ftemp[1,:,3] + ini.ftemp[1,:,7] + ini.ftemp[1,:,6])))
+    ini.ru[:] = ini.rho0*(ini.rho_left - ((ini.ftemp[1,:,0] + ini.ftemp[1,:,2] + ini.ftemp[1,:,4] + 2.*(ini.ftemp[1,:,3] + ini.ftemp[1,:,7] + ini.ftemp[1,:,6]))))
     ini.f[1,:,1] = (ini.ftemp[1,:,3] + (2./3.)*ini.ru[:])
     ini.f[1,:,5] = (ini.ftemp[1,:,7] + (1./6.)*ini.ru[:] - (1./2.)*(ini.ftemp[1,:,2] - ini.ftemp[1,:,4]))
     ini.f[1,:,8] = (ini.ftemp[1,:,6] + (1./6.)*ini.ru[:] - (1./2.)*(ini.ftemp[1,:,4] - ini.ftemp[1,:,2]))
@@ -47,8 +47,8 @@ for t in range(ini.T):
     ini.f[1,:,5][ini.f[1,:,5] < 0] = 0
     ini.f[1,:,8][ini.f[1,:,8] < 0] = 0
 
-    # print "ini.ftemp[1,:,0] = ", ini.ftemp[1,:,0]
-    # print "ini.ru = ", ini.ru
+    print "ini.f[1,:,1] = ", ini.f[1,:,1]
+    print "ini.ru = ", ini.ru
     
     # #Bottom left Corner
     # ini.f[1,1,1] = ini.f[1,-2,3]
@@ -66,7 +66,7 @@ for t in range(ini.T):
 
     #Pressure BC on the right
     #OK
-    ini.ru[:] = ((ini.ftemp[-2,:,0] + ini.ftemp[-2,:,2] + ini.ftemp[-2,:,4] + 2.*(ini.ftemp[-2,:,1] + ini.ftemp[-2,:,5] + ini.ftemp[-2,:,8]))) - ini.rho_right
+    ini.ru[:] = ini.rho0*(((ini.ftemp[-2,:,0] + ini.ftemp[-2,:,2] + ini.ftemp[-2,:,4] + 2.*(ini.ftemp[-2,:,1] + ini.ftemp[-2,:,5] + ini.ftemp[-2,:,8]))) - ini.rho_right)
     ini.f[-2,:,3] = (ini.ftemp[-2,:,1] - (2./3.)*ini.ru[:]) 
     ini.f[-2,:,7] = (ini.ftemp[-2,:,5] - (1./6.)*ini.ru[:] + (1./2.)*(ini.ftemp[-2,:,2] - ini.ftemp[-2,:,4]))
     ini.f[-2,:,6] = (ini.ftemp[-2,:,8] - (1./6.)*ini.ru[:] + (1./2.)*(ini.ftemp[-2,:,4] - ini.ftemp[-2,:,2]))
@@ -75,12 +75,12 @@ for t in range(ini.T):
     ini.f[-2,:,7][ini.f[-2,:,7] < 0] = 0
     ini.f[-2,:,6][ini.f[-2,:,6] < 0] = 0
 
-    print "ini.f[1,:,1] = ", ini.f[1,:,1]
-    print "ini.f[1,:,5] = ", ini.f[1,:,5]
-    print "ini.f[1,:,8] = ", ini.f[1,:,8]
-    print "ini.f[-2,:,3] = ", ini.f[-2,:,3]
-    print "ini.f[-2,:,7] = ", ini.f[-2,:,7]
-    print "ini.f[-2,:,6] = ", ini.f[-2,:,6]
+    # print "ini.f[1,:,1] = ", ini.f[1,:,1]
+    # print "ini.f[1,:,5] = ", ini.f[1,:,5]
+    # print "ini.f[1,:,8] = ", ini.f[1,:,8]
+    # print "ini.f[-2,:,3] = ", ini.f[-2,:,3]
+    # print "ini.f[-2,:,7] = ", ini.f[-2,:,7]
+    # print "ini.f[-2,:,6] = ", ini.f[-2,:,6]
 
     # ... computing density for imaging
     # ini.rho[:,:] = 0.
@@ -101,7 +101,7 @@ for t in range(ini.T):
             for a in range(9):
                 ini.ftemp[i,j,a] = 0
     
-    alpha = 0.
+    alpha = 1.
     for j in range(1,ini.sizeY_+1):
         j_n = (j-1) #if j > 0 else (ini.sizeY_+1)
         j_p = (j+1) #if j < (ini.sizeY_ + 1) else 0 
@@ -126,27 +126,27 @@ for t in range(ini.T):
 
                 if (ini.m[i_p,j_p] <> 1):  ini.ftemp[i_p,j_p,5] = ini.f[i,j,5]
                 else:
-                    #slip flow considered here!
-                    if (ini.rho[i,j] < 0.1): alpha = 1
-                    else: alpha = 1 - (1/(ini.beta*((ini.rho[i,j]/ini.rho0)**ini.gamma)))
+                    # #slip flow considered here!
+                    # if ((ini.rho[i,j]) < 0.1): alpha = 0
+                    # else: alpha = 1 - (1/(ini.beta*((ini.rho[i,j]/ini.rho0)**ini.gamma)))
                     ini.ftemp[i,j,7] += alpha*ini.f[i,j,5]; ini.ftemp[i_p,j,8] += (1-alpha)*ini.f[i,j,5]
 
                 if (ini.m[i_n,j_p] <> 1):  ini.ftemp[i_n,j_p,6] = ini.f[i,j,6]
                 else:
-                    if (ini.rho[i,j] < 0.1): alpha = 1
-                    else: alpha = 1 - (1/(ini.beta*((ini.rho[i,j]/ini.rho0)**ini.gamma)))                      
+                    # if ((ini.rho[i,j]) < 0.1): alpha = 0
+                    # else: alpha = 1 - (1/(ini.beta*((ini.rho[i,j]/ini.rho0)**ini.gamma)))                      
                     ini.ftemp[i,j,8] += alpha*ini.f[i,j,6]; ini.ftemp[i_n,j,7] += (1-alpha)*ini.f[i,j,6]
 
                 if (ini.m[i_n,j_n] <> 1):  ini.ftemp[i_n,j_n,7] = ini.f[i,j,7]
                 else:
-                    if (ini.rho[i,j] < 0.1): alpha = 1
-                    else: alpha = 1 - (1/(ini.beta*((ini.rho[i,j]/ini.rho0)**ini.gamma)))                      
+                    # if ((ini.rho[i,j]) < 0.1): alpha = 0
+                    # else: alpha = 1 - (1/(ini.beta*((ini.rho[i,j]/ini.rho0)**ini.gamma)))                      
                     ini.ftemp[i,j,5] += alpha*ini.f[i,j,7]; ini.ftemp[i_n,j,6] += (1-alpha)*ini.f[i,j,7]
 
                 if (ini.m[i_p,j_n] <> 1):  ini.ftemp[i_p,j_n,8] = ini.f[i,j,8]
                 else:
-                    if (ini.rho[i,j] < 0.1): alpha = 1
-                    else: alpha = 1 - (1/(ini.beta*((ini.rho[i,j]/ini.rho0)**ini.gamma)))                      
+                    # if ((ini.rho[i,j]) < 0.1): alpha = 0
+                    # else: alpha = 1 - (1/(ini.beta*((ini.rho[i,j]/ini.rho0)**ini.gamma)))                      
                     ini.ftemp[i,j,6] += alpha*ini.f[i,j,8]; ini.ftemp[i_p,j,5] += (1-alpha)*ini.f[i,j,8]
 
     print "alpha = ", alpha
@@ -163,18 +163,18 @@ for t in range(ini.T):
     ini.uy[:,:] = ini.uy[:,:]/ini.rho[:,:]
     ini.u[:,:] = sqrt((ini.ux[:,:]**2 + ini.uy[:,:]**2)/2)
 
-    # if mod(t,100) == 0:
-    #     plt.figure(2)
-    #     # plt.plot(ini.rho[1:-1,5])
-    #     # plt.plot(ini.ux[-3,:],label='Outlet')
-    #     plt.plot(ini.ux[(ini.sizeX_+2)//2,:],label='Middle')
-    #     plt.ylim(bottom = 0, top = 0.5)
-    #     plt.xlim(left = 0, right = 14)
-    #     # plt.plot(ini.ux[2,:],label='Inlet')
-    #     plt.legend(loc='upper right')
-    #     plt.show
-    #     plt.pause(0.001)
-    #     plt.clf()
+    if mod(t,100) == 0:
+        plt.figure(2)
+        # plt.plot(ini.rho[1:-1,5])
+        # plt.plot(ini.ux[-3,:],label='Outlet')
+        plt.plot(ini.ux[(ini.sizeX_+2)//2,:],label='Middle')
+        plt.ylim(bottom = 0, top = 0.5)
+        plt.xlim(left = 0, right = 14)
+        # plt.plot(ini.ux[2,:],label='Inlet')
+        plt.legend(loc='upper right')
+        plt.show
+        plt.pause(0.001)
+        plt.clf()
 
     print ini.ux[(ini.sizeX_+2)//2,:]
 
@@ -233,26 +233,25 @@ for t in range(ini.T):
     # print "vel_down = ", ini.ux[(ini.sizeX_+2)//2 + 2,(ini.sizeY_+2)//2]
     #print ini.f[2:ini.sizeX_,2:ini.sizeY_,:].min()
     #print ini.ux[ini.sizeX_//2,ini.sizeY_//2] 
-    print ini.sizeY_
-    print "Middle throughput = ", sum(ini.ux[(ini.sizeX_+2)//2,2:-3])/(ini.sizeY_-2)
+    print "Middle throughput = ", sum(ini.ux[(ini.sizeX_+2)//2,2:-3]*ini.rho[(ini.sizeX_+2)//2,2:-3])/(ini.sizeY_-2)
 
     #To save the density and velocity distribution
     # np.save(os.path.join(ini.name, "rho_" + ini.name + "_" + str(t).zfill(4)), ini.rho)
     # np.save(os.path.join(ini.name, "ux_" + ini.name + "_" + str(t).zfill(4)), ini.ux)     
     
-    if mod(t,5) == 0:
-        varm = ini.rho.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
-        plt.figure(1)
-        ax = sns.heatmap(varm, annot=False, vmin=-0., vmax=2.0, cmap='RdYlBu_r', mask=ini.m.transpose())           #For ux
-        #ax = sns.heatmap(varm, annot=False, vmin=-0.5, vmax=0.5, cmap='RdYlBu_r', mask=ini.m.transpose())           #For rho
-        #figure(num=1, figsize=(15,6), dpi=80, facecolor='w', edgecolor='k')
-        fig = plt.gcf()
-        fig.set_size_inches(10.,5., forward=True)
-        #ax = sns.heatmap(varm, annot=False, vmin=5.*ini.f_init, vmax=18*ini.f_init, cmap='RdYlBu_r')           #For rho
-        ax.invert_yaxis()
-        plt.pause(0.001)
-        #plt.savefig("vel_"+ini.name2+"_"+str(t).zfill(6)+".png")
-        plt.clf()
+    # if mod(t,50) == 0:
+    #     varm = ini.rho.transpose()        #Change the variable to the one that will be plotted: rho, ux, or uy
+    #     plt.figure(1)
+    #     ax = sns.heatmap(varm, annot=False, vmin=-0., vmax=2.0, cmap='RdYlBu_r', mask=ini.m.transpose())           #For ux
+    #     #ax = sns.heatmap(varm, annot=False, vmin=-0.5, vmax=0.5, cmap='RdYlBu_r', mask=ini.m.transpose())           #For rho
+    #     #figure(num=1, figsize=(15,6), dpi=80, facecolor='w', edgecolor='k')
+    #     fig = plt.gcf()
+    #     fig.set_size_inches(10.,5., forward=True)
+    #     #ax = sns.heatmap(varm, annot=False, vmin=5.*ini.f_init, vmax=18*ini.f_init, cmap='RdYlBu_r')           #For rho
+    #     ax.invert_yaxis()
+    #     plt.pause(0.001)
+    #     #plt.savefig("vel_"+ini.name2+"_"+str(t).zfill(6)+".png")
+    #     plt.clf()
 
     #Plot cross-section velocity
 
