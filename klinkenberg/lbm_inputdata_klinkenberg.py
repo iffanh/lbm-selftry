@@ -4,7 +4,7 @@ import scipy.io as sp
 
 
 # #importing grid
-m = genfromtxt('../porestructure/klinkenberg_11b.dat', delimiter="\t")
+m = genfromtxt('../porestructure/pore02.dat', delimiter="\t")
 m = m.transpose()
 
 #name = "r45_u3"
@@ -26,7 +26,7 @@ sizeX_ = len(m) - 2         #length in x-direction
 sizeY_ = len(m[0]) - 2        #length in y-direction
 
 #The number of iteration
-T = 300            #Total time used in the simulation
+T = 2000            #Total time used in the simulation
 dt = 1             #time interval
 
 #Declaring variables
@@ -63,9 +63,9 @@ ru = zeros(sizeY_+2)
 Re_x = 100.
 # ux0_left = 0.04
 # ux0_right = ux0_left*1.5
-rho0 = 0.8
-rho_left = 1.
-rho_right = 1.
+rho0 = 1.
+rho_left = 1.1
+rho_right = 0.7
 #visc = ux0_left*r/Re_x             #kinematic viscosity
 tau0 = 1.0 #3*visc + 0.5                
 e_ = array([[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],[0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0]])         
